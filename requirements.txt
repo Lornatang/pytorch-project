@@ -1,0 +1,14 @@
+opencv-python
+matplotlib
+numpy
+scikit-learn
+pillow
+torchvision
+torch
+lmdb
+captcha
+pyocr
+tqdm
+nltk
+argparse
+tensorflow
