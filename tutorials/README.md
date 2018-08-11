@@ -13,26 +13,26 @@ Yunjey Choi/ [@yunjey](https://github.com/yunjey)
 ## Table of Contents
 
 #### 1. Basics
-* [PyTorch Basics](https://github.com/Lornatang/pytorch_project/tree/master/tutorials/basic/basic.py)
-* [Linear Regression](https://github.com/Lornatang/pytorch_project/tree/master/tutorials/basic/basic.py)
-* [Logistic Regression](https://github.com/Lornatang/pytorch_project/tree/master/tutorials/basic/logistic_regression.py)
-* [Feedforward Neural Network](https://github.com/Lornatang/pytorch_project/tree/master/tutorials/basics/feedforward_neural_network.py)
+* [PyTorch Basics](https://github.com/Lornatang/pytorch-project/tree/master/tutorials/basic/basic.py)
+* [Linear Regression](https://github.com/Lornatang/pytorch-project/tree/master/tutorials/basic/basic.py)
+* [Logistic Regression](https://github.com/Lornatang/pytorch-project/tree/master/tutorials/basic/logistic_regression.py)
+* [Feedforward Neural Network](https://github.com/Lornatang/pytorch-project/tree/master/tutorials/basics/feedforward_neural_network.py)
 
 #### 2. Intermediate
-* [Convolutional Neural Network](https://github.com/Lornatang/pytorch_project/tree/master/tutorials/intermediate/cnn.py)
-* [Deep Residual Network](https://github.com/Lornatang/pytorch_project/tree/master/tutorials/intermediate/resent.py)
-* [Recurrent Neural Network](https://github.com/Lornatang/pytorch_project/tree/master/tutorials/intermediate/rnn.py)
-* [Bidirectional Recurrent Neural Network](https://github.com/Lornatang/pytorch_project/tree/master/tutorials/intermediate/birnn.py)
-* [Language Model (RNN-LM)](https://github.com/Lornatang/pytorch_project/tree/master/tutorials/intermediate/nlp.py)
+* [Convolutional Neural Network](https://github.com/Lornatang/pytorch-project/tree/master/tutorials/intermediate/cnn.py)
+* [Deep Residual Network](https://github.com/Lornatang/pytorch-project/tree/master/tutorials/intermediate/resent.py)
+* [Recurrent Neural Network](https://github.com/Lornatang/pytorch-project/tree/master/tutorials/intermediate/rnn.py)
+* [Bidirectional Recurrent Neural Network](https://github.com/Lornatang/pytorch-project/tree/master/tutorials/intermediate/birnn.py)
+* [Language Model (RNN-LM)](https://github.com/Lornatang/pytorch-project/tree/master/tutorials/intermediate/nlp.py)
 
 #### 3. Advanced
-* [Generative Adversarial Networks](https://github.com/Lornatang/pytorch_project/blob/master/tutorials/advanced/gan.py)
-* [Variational Auto-Encoder](https://github.com/Lornatang/pytorch_project/blob/master/tutorials/advanced/autoencoder.py)
-* [Neural Style Transfer](https://github.com/Lornatang/pytorch_project/tree/master/tutorials/advanced/neural_style_transfer)
-* [Image Captioning (CNN-RNN)](https://github.com/Lornatang/pytorch_project/tree/master/tutorials/advanced/image_captioning)
+* [Generative Adversarial Networks](https://github.com/Lornatang/pytorch-project/blob/master/tutorials/advanced/gan.py)
+* [Variational Auto-Encoder](https://github.com/Lornatang/pytorch-project/blob/master/tutorials/advanced/autoencoder.py)
+* [Neural Style Transfer](https://github.com/Lornatang/pytorch-project/tree/master/tutorials/advanced/neural_style_transfer)
+* [Image Captioning (CNN-RNN)](https://github.com/Lornatang/pytorch-project/tree/master/tutorials/advanced/image_captioning)
 
 #### 4. Utilities
-* [TensorBoard in PyTorch](https://github.com/Lornatang/pytorch_project/tree/master/tutorials/utils/tensorboard)
+* [TensorBoard in PyTorch](https://github.com/Lornatang/pytorch-project/tree/master/tutorials/utils/tensorboard)
 
 
 
