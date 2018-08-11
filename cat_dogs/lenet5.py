@@ -8,8 +8,8 @@
 
 import argparse
 import os
-
 import time
+
 import torch
 import torchvision
 from torch import nn
@@ -64,53 +64,6 @@ train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
 val_loader = torch.utils.data.DataLoader(dataset=val_datasets,
                                          batch_size=args.batch_size,
                                          shuffle=True)
-
-
-class Net(torch.nn.Module):
-    def __init__(self, category=args.num_classes):
-        super(Net, self).__init__()
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 32, 5, 1, 0),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2)
-        )
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(32, 64, 5, 1, 0),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2)
-        )
-        self.conv3 = nn.Sequential(
-            nn.Conv2d(64, 128, 5, 1, 0),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2)
-        )
-        self.conv4 = nn.Sequential(
-            nn.Conv2d(128, 256, 5, 1, 0),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2)
-        )
-        self.dense = nn.Sequential(
-            nn.Linear(256 * 10 * 10, 256),
-            nn.ReLU(),
-            nn.Dropout(0.75),
-            nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Dropout(0.75),
-            nn.Linear(128, category)
-        )
-
-    def forward(self, x):
-        conv1_out = self.conv1(x)
-        conv2_out = self.conv2(conv1_out)
-        conv3_out = self.conv3(conv2_out)
-        conv4_out = self.conv4(conv3_out)
-        res = conv4_out.reshape(conv4_out.size(0), -1)
-        out = self.dense(res)
-        return out
 
 
 # Load model
@@ -180,4 +133,3 @@ def test():
 
 if __name__ == '__main__':
     test()
-
