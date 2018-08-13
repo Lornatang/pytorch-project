@@ -99,13 +99,15 @@ class Net(nn.Module):
             nn.ReLU(True)
         )
         self.classifier = nn.Sequential(
-            nn.Dropout(True),
-            nn.Linear(1024, 4096),
-            nn.ReLU(inplace=True),
-            nn.Dropout(True),
-            nn.Linear(4096, 4096),
-            nn.ReLU(inplace=True),
-            nn.Linear(4096, 2),
+            nn.Dropout(0.75),
+            nn.Linear(1024, 2048),
+            nn.ReLU(True),
+
+            nn.Dropout(0.75),
+            nn.Linear(2048, 1024),
+            nn.ReLU(True),
+
+            nn.Linear(1024, 2),
         )
 
     def forward(self, x):
