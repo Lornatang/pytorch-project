@@ -8,8 +8,8 @@
 
 import argparse
 import os
-import time
 
+import time
 import torch
 import torchvision
 from torch import nn
@@ -22,7 +22,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/catdog/',
                     help="""image dir path default: '../data/catdog/'.""")
-parser.add_argument('--epochs', type=int, default=10,
+parser.add_argument('--epochs', type=int, default=50,
                     help="""Epoch default:50.""")
 parser.add_argument('--batch_size', type=int, default=128,
                     help="""Batch_size default:2.""")
@@ -34,7 +34,7 @@ parser.add_argument('--model_path', type=str, default='../../model/pytorch/catdo
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='lenet5.pth',
                     help="""Model name.""")
-parser.add_argument('--display_epoch', type=int, default=1)
+parser.add_argument('--display_epoch', type=int, default=5)
 args = parser.parse_args()
 
 # Create model
@@ -42,9 +42,9 @@ if not os.path.exists(args.model_path):
     os.makedirs(args.model_path)
 
 transform = transforms.Compose([
-    transforms.Resize((224, 224)),  # 将图像转化为800 * 800
+    transforms.Resize(256),  # 将图像转化为800 * 800
     transforms.RandomHorizontalFlip(p=0.75),  # 有0.75的几率随机旋转
-    # transforms.RandomCrop(54),  # 从图像中裁剪一个24 * 24的
+    transforms.RandomCrop(224),  # 从图像中裁剪一个24 * 24的
     transforms.ColorJitter(brightness=1, contrast=2, saturation=3, hue=0),  # 给图像增加一些随机的光照
     # transforms.Grayscale(),  # 转化为灰度图
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
@@ -70,14 +70,14 @@ val_loader = torch.utils.data.DataLoader(dataset=val_datasets,
 model = torchvision.models.alexnet(pretrained=True).to(device)
 
 model.classifier = nn.Sequential(
-    nn.Dropout(),
+    nn.Dropout(True),
     nn.Linear(256 * 6 * 6, 4096),
     nn.ReLU(inplace=True),
-    nn.Dropout(),
+    nn.Dropout(True),
     nn.Linear(4096, 4096),
     nn.ReLU(inplace=True),
     nn.Linear(4096, 2),
-    )
+)
 print(model)
 # cast
 cast = nn.CrossEntropyLoss()
@@ -85,7 +85,7 @@ cast = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
 
-def main():
+def train():
     print(f"Trian numbers:{len(train_datasets)}")
     print(f"Val numbers:{len(val_datasets)}")
     for epoch in range(1, args.epochs + 1):
@@ -109,27 +109,28 @@ def main():
             print(f"Epoch [{epoch}/{args.epochs}], "
                   f"Loss: {loss.item():.8f}, "
                   f"Time: {(end-start) * args.display_epoch:.1f}sec!")
-            test()
 
     # Save the model checkpoint
     model_path = torch.save(model, args.model_path + args.model_name)
     print(f"Model save to {model_path}.")
 
 
-def test():
+def val():
+    print(f"Val numbers{len(val_datasets)}.")
     model.eval()
-    correct = 0.
+    correct_prediction = 0.
     total = 0
     for images, labels in val_loader:
+        # to GPU
         images = images.to(device)
         labels = labels.to(device)
+        # print prediction
         outputs = model(images)
+        # equal prediction and acc
         _, predicted = torch.max(outputs.data, 1)
+        # val_loader total
         total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+        # add correct
+        correct_prediction += (predicted == labels).sum()
 
-    print(f"Acc: {correct / total:f}")
-
-
-if __name__ == '__main__':
-    test()
+    print(f"Acc: {correct / total_prediction:f}")
