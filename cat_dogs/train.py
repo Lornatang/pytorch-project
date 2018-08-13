@@ -23,10 +23,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/catdog/',
                     help="""image dir path default: '../data/catdog/'.""")
-parser.add_argument('--epochs', type=int, default=64,
-                    help="""Epoch default:64.""")
-parser.add_argument('--batch_size', type=int, default=20,
-                    help="""Batch_size default:128.""")
+parser.add_argument('--epochs', type=int, default=50,
+                    help="""Epoch default:50.""")
+parser.add_argument('--batch_size', type=int, default=5,
+                    help="""Batch_size default:5.""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
 parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
@@ -41,9 +41,9 @@ if not os.path.exists(args.model_path):
     os.makedirs(args.model_path)
 
 transform = transforms.Compose([
-    transforms.Resize(256),  # 将图像转化为800 * 800
+    transforms.Resize(128),  # 将图像转化为800 * 800
     transforms.RandomHorizontalFlip(p=0.75),  # 有0.75的几率随机旋转
-    transforms.RandomCrop(224),  # 从图像中裁剪一个24 * 24的
+    transforms.RandomCrop(114),  # 从图像中裁剪一个24 * 24的
     transforms.ColorJitter(brightness=1, contrast=2, saturation=3, hue=0),  # 给图像增加一些随机的光照
     # transforms.Grayscale(),  # 转化为灰度图
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
@@ -98,21 +98,21 @@ class Net(nn.Module):
             nn.MaxPool2d(2, 2),
 
             # Conv 5
-            nn.Conv2d(512, 1024, 3, 1, 1),
-            nn.BatchNorm2d(1024),
+            nn.Conv2d(512, 512, 3, 1, 1),
+            nn.BatchNorm2d(512),
             nn.ReLU(True),
             nn.MaxPool2d(2, 2)
         )
         self.classifier = nn.Sequential(
             nn.Dropout(0.75),
-            nn.Linear(1024 * 7 * 7, 2048),
+            nn.Linear(512 * 3 * 3, 512),
             nn.ReLU(True),
 
             nn.Dropout(0.75),
-            nn.Linear(2048, 1024),
+            nn.Linear(512, 256),
             nn.ReLU(True),
 
-            nn.Linear(1024, category)
+            nn.Linear(256, category)
         )
 
     def forward(self, x):
@@ -137,8 +137,6 @@ def train():
     print(f"Trian numbers:{len(train_datasets)}")
     print(f"Val numbers:{len(val_datasets)}")
 
-    total_loss = 0.
-
     for epoch in range(1, args.epochs + 1):
         model.train()
         start = time.time()
@@ -155,12 +153,10 @@ def train():
             loss.backward()
             optimizer.step()
 
-            total_loss += loss
-
         if epoch % args.display_epoch == 0:
             end = time.time()
             print(f"Epoch [{epoch}/{args.epochs}], "
-                  f"Loss: {total_loss:.8f}, "
+                  f"Loss: {loss.item():.8f}, "
                   f"Time: {(end-start) * args.display_epoch:.1f}sec!")
 
     # Save the model checkpoint
