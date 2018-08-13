@@ -209,7 +209,11 @@ def val():
         else:
             print('is dog')
 
-    # print(f"Acc: {(correct_prediction / total):4f}")
 
-
-val()
+if __name__ == '__main__':
+    if args[1] == '--train':
+        train()
+    elif args[1] == '--test':
+        test()
+    elif args[1] == '--val':
+        val()
