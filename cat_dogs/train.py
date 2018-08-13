@@ -23,10 +23,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/catdog/',
                     help="""image dir path default: '../data/catdog/'.""")
-parser.add_argument('--epochs', type=int, default=50,
-                    help="""Epoch default:50.""")
-parser.add_argument('--batch_size', type=int, default=128,
-                    help="""Batch_size default:2.""")
+parser.add_argument('--epochs', type=int, default=64,
+                    help="""Epoch default:64.""")
+parser.add_argument('--batch_size', type=int, default=20,
+                    help="""Batch_size default:128.""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
 parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
@@ -89,24 +89,27 @@ class Net(nn.Module):
             nn.Conv2d(128, 256, 3, 1, 1),
             nn.BatchNorm2d(256),
             nn.ReLU(True),
+            nn.MaxPool2d(2, 2),
 
             # Conv 4
             nn.Conv2d(256, 512, 3, 1, 1),
             nn.BatchNorm2d(512),
             nn.ReLU(True),
+            nn.MaxPool2d(2, 2),
 
             # Conv 5
-            nn.Conv2d(512, 512, 3, 1, 1),
+            nn.Conv2d(512, 1024, 3, 1, 1),
             nn.BatchNorm2d(1024),
-            nn.ReLU(True)
+            nn.ReLU(True),
+            nn.MaxPool2d(2, 2)
         )
         self.classifier = nn.Sequential(
             nn.Dropout(0.75),
-            nn.Linear(512, 1024),
+            nn.Linear(1024 * 7 * 7, 2048),
             nn.ReLU(True),
 
             nn.Dropout(0.75),
-            nn.Linear(1024, 1024),
+            nn.Linear(2048, 1024),
             nn.ReLU(True),
 
             nn.Linear(1024, category)
@@ -133,6 +136,9 @@ def train():
 
     print(f"Trian numbers:{len(train_datasets)}")
     print(f"Val numbers:{len(val_datasets)}")
+
+    total_loss = 0.
+
     for epoch in range(1, args.epochs + 1):
         model.train()
         start = time.time()
@@ -149,10 +155,12 @@ def train():
             loss.backward()
             optimizer.step()
 
+            total_loss += loss
+
         if epoch % args.display_epoch == 0:
             end = time.time()
             print(f"Epoch [{epoch}/{args.epochs}], "
-                  f"Loss: {loss:.8f}, "
+                  f"Loss: {total_loss:.8f}, "
                   f"Time: {(end-start) * args.display_epoch:.1f}sec!")
 
     # Save the model checkpoint
