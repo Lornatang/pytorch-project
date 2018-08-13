@@ -8,8 +8,9 @@
 
 import argparse
 import os
-
 import time
+
+import cv2
 import torch
 import torchvision
 from torch import nn
@@ -158,8 +159,8 @@ def train():
     print(f"Model save to {model_path}.")
 
 
-def val():
-    print(f"Val numbers{len(val_datasets)}.")
+def test():
+    print(f"test numbers{len(val_datasets)}.")
     model = torch.load(args.model_path + args.model_name)
     print(model)
 
@@ -180,6 +181,19 @@ def val():
         correct_prediction += (predicted == labels).sum()
 
     print(f"Acc: {correct_prediction / total:f}")
+
+
+def val(img):
+    model = torch.load(args.model_path + args.model_name)
+
+    model.eval()
+    ima = cv2.imread(img)
+
+    outputs = model(img)
+
+    _, predicted = torch.max(outputs.data, 1)
+
+    print(f"This is {predicted}!")
 
 
 train()
