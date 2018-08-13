@@ -9,9 +9,11 @@
 import argparse
 import os
 
-import sys
+import time
 import torch
 import torchvision
+from torch import nn
+from torch import optim
 from torchvision import transforms
 
 # Device configuration
@@ -26,6 +28,8 @@ parser.add_argument('--batch_size', type=int, default=5,
                     help="""Batch_size default:5.""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
+parser.add_argument('--num_classes', type=int, default=2,
+                    help="""num classes""")
 parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='catdog.pth',
@@ -61,6 +65,46 @@ train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
 test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
                                           batch_size=args.batch_size,
                                           shuffle=True)
+
+
+def train():
+    print(f"Train numbers:{len(train_datasets)}")
+    print(f"Val numbers:{len(test_datasets)}")
+
+    # Load model
+    model = torch.load(args.model_path + args.model_name, map_location='cpu')
+    print(model)
+    # cast
+    cast = nn.CrossEntropyLoss()
+    # Optimization
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+
+    for epoch in range(1, args.epochs + 1):
+        model.train()
+        start = time.time()
+        for images, labels in train_loader:
+            images = images.to(device)
+            labels = labels.to(device)
+
+            # Forward pass
+            outputs = model(images)
+            loss = cast(outputs, labels)
+
+            # Backward and optimize
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        if epoch % args.display_epoch == 0:
+            end = time.time()
+            print(f"Epoch [{epoch}/{args.epochs}], "
+                  f"Loss: {loss.item():.8f}, "
+                  f"Time: {(end-start) * args.display_epoch:.1f}sec!")
+            test()
+
+    # Save the model checkpoint
+    torch.save(model, args.model_path + args.model_name)
+    print(f"Model save to {args.model_path + args.model_name}.")
 
 
 def test():
@@ -110,7 +154,4 @@ def val():
 
 
 if __name__ == '__main__':
-    if sys.argv[1] == '--test':
-        test()
-    elif sys.argv[1] == '--val':
-        val()
+    train()
