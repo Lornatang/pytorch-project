@@ -32,7 +32,7 @@ parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='catdog.pth',
                     help="""Model name.""")
-parser.add_argument('--display_epoch', type=int, default=5)
+parser.add_argument('--display_epoch', type=int, default=2)
 args = parser.parse_args()
 
 # Create model
@@ -49,9 +49,9 @@ transform = transforms.Compose([
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # 归一化
 ])
 
-
+# Load data
 train_datasets = torchvision.datasets.ImageFolder(root=args.path + 'train/',
-                                                  transform=transform,)
+                                                  transform=transform)
 val_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
                                                 transform=transform)
 
