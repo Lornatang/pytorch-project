@@ -17,25 +17,22 @@ from torch import optim
 from torchvision import transforms
 
 # Device configuration
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/catdog/',
                     help="""image dir path default: '../data/catdog/'.""")
-parser.add_argument('--epochs', type=int, default=10,
+parser.add_argument('--epochs', type=int, default=50,
                     help="""Epoch default:50.""")
 parser.add_argument('--batch_size', type=int, default=128,
                     help="""Batch_size default:2.""")
-parser.add_argument('--num_classes', type=int, default=2,
-                    help="""0 ~ 1,. Default=2""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
-parser.add_argument('--model_path', type=str, default='../../model/pytorch/catdog/',
+parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
                     help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='lenet5.pth',
+parser.add_argument('--model_name', type=str, default='catdog.pth',
                     help="""Model name.""")
-parser.add_argument('--display_epoch', type=int, default=1)
+parser.add_argument('--display_epoch', type=int, default=5)
 args = parser.parse_args()
 
 # Create model
@@ -66,24 +63,69 @@ val_loader = torch.utils.data.DataLoader(dataset=val_datasets,
                                          batch_size=args.batch_size,
                                          shuffle=True)
 
+num_classes = train_datasets.classes
+
+
+# Create neural net
+class Net(nn.Module):
+    def __init__(self, category=num_classes):
+        super(Net, self).__init__()
+        self.features = nn.Sequential(
+            # Conv 1
+            nn.Conv2d(3, 64, 3, 1, 1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(True),
+            nn.MaxPool2d(2, 2),
+
+            # Conv 2
+            nn.Conv2d(64, 128, 3, 1, 1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(True),
+            nn.MaxPool2d(2, 2),
+
+            # Conv 3
+            nn.Conv2d(128, 256, 3, 1, 1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(True),
+
+            # Conv 4
+            nn.Conv2d(256, 512, 3, 1, 1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(True),
+
+            # Conv 5
+            nn.Conv2d(512, 1024, 3, 1, 1),
+            nn.BatchNorm2d(1024),
+            nn.ReLU(True)
+        )
+        self.classifier = nn.Sequential(
+            nn.Dropout(True),
+            nn.Linear(1024, 4096),
+            nn.ReLU(inplace=True),
+            nn.Dropout(True),
+            nn.Linear(4096, 4096),
+            nn.ReLU(inplace=True),
+            nn.Linear(4096, 2),
+        )
+
+    def forward(self, x):
+        out = self.features(x)
+
+        dense = out.reshape(x.size(0), -1)
+
+        out = self.classifier(dense)
+
+        return out
+
 
 # Load model
-model = torchvision.models.alexnet(pretrained=True).to(device)
-
-model.classifier = nn.Sequential(
-    nn.Dropout(True),
-    nn.Linear(256 * 6 * 6, 4096),
-    nn.ReLU(inplace=True),
-    nn.Dropout(True),
-    nn.Linear(4096, 4096),
-    nn.ReLU(inplace=True),
-    nn.Linear(4096, 2),
-)
+model = Net().to(device)
 print(model)
 # cast
 cast = nn.CrossEntropyLoss()
 # Optimization
 optimizer = optim.Adam(model.parameters(), lr=args.lr)
+
 
 def train():
     print(f"Trian numbers:{len(train_datasets)}")
@@ -107,7 +149,7 @@ def train():
         if epoch % args.display_epoch == 0:
             end = time.time()
             print(f"Epoch [{epoch}/{args.epochs}], "
-                  f"Loss: {loss.item():.8f}, "
+                  f"Loss: {loss:.8f}, "
                   f"Time: {(end-start) * args.display_epoch:.1f}sec!")
 
     # Save the model checkpoint
