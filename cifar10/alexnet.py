@@ -8,8 +8,8 @@
 
 import argparse
 import os
-
 import time
+
 import torch
 import torch.nn as nn
 import torchvision.models
@@ -27,13 +27,13 @@ parser.add_argument('--num_classes', type=int, default=10,
                     help="""0 ~ 9,. Default=10""")
 parser.add_argument('--batch_size', type=int, default=128,
                     help="""batch size. Default=128""")
-parser.add_argument('--lr', type=float, default=0.0001,
-                    help="""learing_rate. Default=0.0001""")
+parser.add_argument('--lr', type=float, default=0.0005,
+                    help="""learing_rate. Default=0.0005""")
 parser.add_argument('--model_path', type=str, default='../../model/pytorch/cifar10/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='alexnet.pth',
                     help="""Model name""")
-parser.add_argument('--display_epoch', type=int, default=1)
+parser.add_argument('--display_epoch', type=int, default=5)
 args = parser.parse_args()
 
 # Create model
@@ -41,7 +41,7 @@ if not os.path.exists(args.model_path):
     os.makedirs(args.model_path)
 
 train_transform = transforms.Compose([
-    transforms.RandomCrop(32, padding=2),  # 先四周填充2，在吧图像随机裁剪成32*32
+    transforms.CenterCrop(24),
     transforms.RandomHorizontalFlip(),  # 图像一半的概率翻转，一半的概率不翻转
     transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))  # R,G,B每层的归一化用到的均值和方差
@@ -97,14 +97,14 @@ class AlexNet(nn.Module):
         )
         self.classifical = nn.Sequential(
             nn.Dropout(p=0.5),
-            nn.Linear(256, 128),
+            nn.Linear(256, 1024),
             nn.ReLU(inplace=True),
 
             nn.Dropout(p=0.5),
-            nn.Linear(128, 64),
+            nn.Linear(1024, 512),
             nn.ReLU(inplace=True),
 
-            nn.Linear(64, category)
+            nn.Linear(512, category)
         )
 
     def forward(self, x):
@@ -148,11 +148,10 @@ def main():
             end = time.time()
             print(f"Epoch [{epoch}/{args.epochs}], "
                   f"Loss: {loss.item():.8f}, "
-                  f"Time: {(end-start):.1f}sec!")
+                  f"Time: {(end-start) * args.display_epoch:.1f}sec!")
 
             # Test the model
             model.eval()  # eval mode (batchnorm uses moving mean/variance instead of mini-batch mean/variance)
-        with torch.no_grad():
             correct = 0
             total = 0
             for images, labels in test_loader:
@@ -165,7 +164,7 @@ def main():
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
 
-            print(f"Test Accuracy: {(correct / 100):.2f}%")
+            print(f"Test Accuracy: {(correct / total):.4f}")
 
     # Save the model checkpoint
     torch.save(model, args.model_path + args.model_name)
