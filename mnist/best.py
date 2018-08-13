@@ -8,10 +8,11 @@
 
 import argparse
 import os
-
 import time
+
 import torch
 from torch import nn
+from torch.autograd import Variable
 from torchvision import datasets
 from torchvision import transforms
 
@@ -33,7 +34,7 @@ parser.add_argument('--model_path', type=str, default='../../model/pytorch/mnist
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='best.pth',
                     help="""Model name""")
-parser.add_argument('--display_epoch', type=int, default=1)
+parser.add_argument('--display_epoch', type=int, default=2)
 args = parser.parse_args()
 
 # Create model
@@ -43,7 +44,7 @@ if not os.path.exists(args.model_path):
 train_transform = transforms.Compose([
     transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
-    transforms.Normalize((0.1307,), (0.3081,))
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
 test_transform = transforms.Compose([
@@ -77,18 +78,20 @@ class CNN(nn.Module):
     def __init__(self, category=args.num_classes):
         super(CNN, self).__init__()
         self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 32, 5, 1, 2),
+            nn.Conv2d(1, 128, 5, 1, 2),
+            nn.BatchNorm2d(128),
             nn.ReLU(True),
             nn.MaxPool2d(2, 2),
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(32, 64, 5, 1, 2),
+            nn.Conv2d(128, 256, 5, 1, 2),
+            nn.BatchNorm2d(256),
             nn.ReLU(True),
             nn.MaxPool2d(2, 2),
         )
 
         self.fc1 = nn.Sequential(
-            nn.Linear(64 * 7 * 7, 1024),
+            nn.Linear(256 * 7 * 7, 1024),
             nn.Dropout(0.75),
             nn.ReLU(True),
         )
@@ -114,6 +117,7 @@ class CNN(nn.Module):
 
 # Load model
 model = CNN().to(device)
+
 print(CNN())
 # cast
 cast = nn.CrossEntropyLoss()
@@ -125,9 +129,9 @@ def main():
     model.train()
     for epoch in range(1, args.epochs + 1):
         start = time.time()
-        for i, (images, labels) in enumerate(train_loader):
-            images = images.to(device)
-            labels = labels.to(device)
+        for images, labels in train_loader:
+            images = Variable(images).cuda()
+            labels = Variable(labels).cuda()
 
             # Forward pass
             outputs = model(images)
@@ -142,24 +146,23 @@ def main():
             end = time.time()
             print(f"Epoch [{epoch}/{args.epochs}], "
                   f"Loss: {loss.item():.8f}, "
-                  f"Time: {(end-start):.1f}sec!")
+                  f"Time: {(end-start) * args.display_epoch:.1f}sec!")
 
             # Test the model
             model.eval()  # eval mode (batchnorm uses moving mean/variance instead of mini-batch mean/variance)
-        with torch.no_grad():
-            correct = 0
+            correct = 0.
             total = 0
             for images, labels in test_loader:
-                images = images.to(device)
-                labels = labels.to(device)
+                images = Variable(images).cuda()
+                labels = Variable(labels).cuda()
 
                 outputs = model(images)
                 _, predicted = torch.max(outputs.data, 1)
 
                 total += labels.size(0)
-                correct += (predicted == labels).sum().item()
+                correct += (predicted == labels).sum()
 
-            print(f"Test Accuracy: {(correct / 100):.2f}%")
+            print(f"Test Accuracy: {(correct / total):.4f}")
 
     # Save the model checkpoint
     torch.save(model, args.model_path + args.model_name)
