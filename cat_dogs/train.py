@@ -9,13 +9,16 @@
 import argparse
 import os
 import time
-
+import numpy as np
 import cv2
 import torch
+from torch.autograd import Variable
 import torchvision
 from torch import nn
 from torch import optim
 from torchvision import transforms
+
+from PIL import Image
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -56,6 +59,7 @@ train_datasets = torchvision.datasets.ImageFolder(root=args.path + 'train/',
 val_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
                                                 transform=transform)
 
+datasets = torchvision.datasets.ImageFolder
 train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
                                            batch_size=args.batch_size,
                                            shuffle=True)
@@ -84,6 +88,7 @@ class Net(nn.Module):
             nn.BatchNorm2d(128),
             nn.ReLU(True),
             nn.MaxPool2d(2, 2),
+            nn.MaxPool2d(2, 2),
 
             # Conv 3
             nn.Conv2d(128, 256, 3, 1, 1),
@@ -95,7 +100,6 @@ class Net(nn.Module):
             nn.Conv2d(256, 512, 3, 1, 1),
             nn.BatchNorm2d(512),
             nn.ReLU(True),
-            nn.MaxPool2d(2, 2),
 
             # Conv 5
             nn.Conv2d(512, 512, 3, 1, 1),
@@ -126,6 +130,9 @@ class Net(nn.Module):
 
 
 def train():
+    print(f"Train numbers:{len(train_datasets)}")
+    print(f"Val numbers:{len(val_datasets)}")
+
     # Load model
     model = Net().to(device)
     print(model)
@@ -133,9 +140,6 @@ def train():
     cast = nn.CrossEntropyLoss()
     # Optimization
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-
-    print(f"Trian numbers:{len(train_datasets)}")
-    print(f"Val numbers:{len(val_datasets)}")
 
     for epoch in range(1, args.epochs + 1):
         model.train()
@@ -158,18 +162,18 @@ def train():
             print(f"Epoch [{epoch}/{args.epochs}], "
                   f"Loss: {loss.item():.8f}, "
                   f"Time: {(end-start) * args.display_epoch:.1f}sec!")
+            test()
 
     # Save the model checkpoint
-    model_path = torch.save(model, args.model_path + args.model_name)
-    print(f"Model save to {model_path}.")
+    torch.save(model, args.model_path + args.model_name)
+    print(f"Model save to {args.model_path + args.model_name}.")
 
 
 def test():
-    print(f"test numbers{len(val_datasets)}.")
+    print(f"test numbers: {len(val_datasets)}.")
     model = torch.load(args.model_path + args.model_name)
-    print(model)
-
     model.eval()
+
     correct_prediction = 0.
     total = 0
     for images, labels in val_loader:
@@ -183,22 +187,22 @@ def test():
         # val_loader total
         total += labels.size(0)
         # add correct
-        correct_prediction += (predicted == labels).sum()
+        correct_prediction += (predicted == labels).sum().item()
 
-    print(f"Acc: {correct_prediction / total:f}")
+    print(f"Acc: {(correct_prediction / total):4f}")
 
 
 def val(img):
     model = torch.load(args.model_path + args.model_name)
 
     model.eval()
-    ima = cv2.imread(img)
+    img = cv2.imread(img)
+    img = torch.Tensor(img)
+    result = model(img)
 
-    outputs = model(img)
+    result = result.data.numpy()
 
-    _, predicted = torch.max(outputs.data, 1)
-
-    print(f"This is {predicted}!")
+    print(f"This is {result[0]}!")
 
 
-train()
+val('D:\Program\pytorch-project\data\catdog\train\cats\cats.1.jpg')
