@@ -8,17 +8,13 @@
 
 import argparse
 import os
+
 import time
-import numpy as np
-import cv2
 import torch
-from torch.autograd import Variable
 import torchvision
 from torch import nn
 from torch import optim
 from torchvision import transforms
-
-from PIL import Image
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -56,17 +52,16 @@ transform = transforms.Compose([
 # Load data
 train_datasets = torchvision.datasets.ImageFolder(root=args.path + 'train/',
                                                   transform=transform)
-val_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
-                                                transform=transform)
+test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'test/',
+                                                 transform=transform)
 
-datasets = torchvision.datasets.ImageFolder
 train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
                                            batch_size=args.batch_size,
                                            shuffle=True)
 
-val_loader = torch.utils.data.DataLoader(dataset=val_datasets,
-                                         batch_size=args.batch_size,
-                                         shuffle=True)
+test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
+                                          batch_size=args.batch_size,
+                                          shuffle=True)
 
 num_classes = 2
 
@@ -131,7 +126,7 @@ class Net(nn.Module):
 
 def train():
     print(f"Train numbers:{len(train_datasets)}")
-    print(f"Val numbers:{len(val_datasets)}")
+    print(f"Val numbers:{len(test_datasets)}")
 
     # Load model
     model = Net().to(device)
@@ -170,13 +165,13 @@ def train():
 
 
 def test():
-    print(f"test numbers: {len(val_datasets)}.")
-    model = torch.load(args.model_path + args.model_name)
+    print(f"test numbers: {len(test_datasets)}.")
+    model = torch.load(args.model_path + args.model_name, map_location='cpu')
     model.eval()
 
     correct_prediction = 0.
     total = 0
-    for images, labels in val_loader:
+    for images, labels in test_loader:
         # to GPU
         images = images.to(device)
         labels = labels.to(device)
@@ -189,20 +184,32 @@ def test():
         # add correct
         correct_prediction += (predicted == labels).sum().item()
 
+        print(labels)
+
     print(f"Acc: {(correct_prediction / total):4f}")
 
 
-def val(img):
-    model = torch.load(args.model_path + args.model_name)
-
+def val():
+    val_datasetss = torchvision.datasets.ImageFolder(root=args.path + 'val/',
+                                                     transform=transform)
+    val_loaders = torch.utils.data.DataLoader(dataset=val_datasetss)
+    model = torch.load(args.model_path + args.model_name, map_location='cpu')
     model.eval()
-    img = cv2.imread(img)
-    img = torch.Tensor(img)
-    result = model(img)
 
-    result = result.data.numpy()
+    for images, _ in val_loaders:
+        # to GPU
+        images = images.to(device)
+        # print prediction
+        outputs = model(images)
+        # equal prediction and acc
+        _, predicted = torch.max(outputs.data, 1)
 
-    print(f"This is {result[0]}!")
+        if predicted[0] == 0:
+            print('is cat!')
+        else:
+            print('is dog')
+
+    # print(f"Acc: {(correct_prediction / total):4f}")
 
 
-val('D:\Program\pytorch-project\data\catdog\train\cats\cats.1.jpg')
+val()
