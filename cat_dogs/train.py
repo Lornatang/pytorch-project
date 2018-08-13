@@ -64,7 +64,7 @@ val_loader = torch.utils.data.DataLoader(dataset=val_datasets,
                                          batch_size=args.batch_size,
                                          shuffle=True)
 
-num_classes = train_datasets.classes
+num_classes = 2
 
 
 # Create neural net
@@ -79,6 +79,7 @@ class Net(nn.Module):
             nn.MaxPool2d(2, 2),
 
             # Conv 2
+
             nn.Conv2d(64, 128, 3, 1, 1),
             nn.BatchNorm2d(128),
             nn.ReLU(True),
@@ -95,17 +96,17 @@ class Net(nn.Module):
             nn.ReLU(True),
 
             # Conv 5
-            nn.Conv2d(512, 1024, 3, 1, 1),
+            nn.Conv2d(512, 512, 3, 1, 1),
             nn.BatchNorm2d(1024),
             nn.ReLU(True)
         )
         self.classifier = nn.Sequential(
             nn.Dropout(0.75),
-            nn.Linear(1024, 2048),
+            nn.Linear(512, 1024),
             nn.ReLU(True),
 
             nn.Dropout(0.75),
-            nn.Linear(2048, 1024),
+            nn.Linear(1024, 1024),
             nn.ReLU(True),
 
             nn.Linear(1024, category)
