@@ -107,7 +107,7 @@ class Net(nn.Module):
             nn.Linear(2048, 1024),
             nn.ReLU(True),
 
-            nn.Linear(1024, 2),
+            nn.Linear(1024, category)
         )
 
     def forward(self, x):
@@ -120,16 +120,15 @@ class Net(nn.Module):
         return out
 
 
-# Load model
-model = Net().to(device)
-print(model)
-# cast
-cast = nn.CrossEntropyLoss()
-# Optimization
-optimizer = optim.Adam(model.parameters(), lr=args.lr)
-
-
 def train():
+    # Load model
+    model = Net().to(device)
+    print(model)
+    # cast
+    cast = nn.CrossEntropyLoss()
+    # Optimization
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+
     print(f"Trian numbers:{len(train_datasets)}")
     print(f"Val numbers:{len(val_datasets)}")
     for epoch in range(1, args.epochs + 1):
@@ -161,6 +160,9 @@ def train():
 
 def val():
     print(f"Val numbers{len(val_datasets)}.")
+    model = torch.load(args.model_path + args.model_name)
+    print(model)
+
     model.eval()
     correct_prediction = 0.
     total = 0
