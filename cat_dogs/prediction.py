@@ -1,13 +1,14 @@
 """
 # author: shiyipaisizuo
 # contact: shiyipaisizuo@gmail.com
-# file: predicted.py
+# file: prediction.py
 # time: 2018/8/14 09:35
 # license: MIT
 """
 
-import train
+import base
 from torch import nn
+
 
 class Net(nn.Module):
     def __init__(self):
@@ -57,4 +58,4 @@ class Net(nn.Module):
         return out
 
 
-train.test()
+base.test()

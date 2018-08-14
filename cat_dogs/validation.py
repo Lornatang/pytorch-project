@@ -1,7 +1,7 @@
 """
 # author: shiyipaisizuo
 # contact: shiyipaisizuo@gmail.com
-# file: train.py
+# file: validation.py
 # time: 2018/8/14 09:43
 # license: MIT
 """
@@ -58,4 +58,4 @@ class Net(nn.Module):
         return out
 
 
-base.train()
+base.test()
