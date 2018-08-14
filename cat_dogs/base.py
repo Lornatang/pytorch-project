@@ -115,6 +115,9 @@ class Net(nn.Module):
         return out
 
 
+item = train_datasets.class_to_idx
+
+
 def train():
     print(f"Train numbers:{len(train_datasets)}")
     print(f"Val numbers:{len(test_datasets)}")
@@ -186,7 +189,7 @@ def test():
 
 
 def val():
-    val_datasetss = torchvision.datasets.ImageFolder(root=args.path + 'test/',
+    val_datasetss = torchvision.datasets.ImageFolder(root=args.path + 'val/',
                                                      transform=transform)
     val_loaders = torch.utils.data.DataLoader(dataset=val_datasetss)
     # Load model
@@ -204,7 +207,8 @@ def val():
         # equal prediction and acc
         _, predicted = torch.max(outputs.data, 1)
 
-        if predicted[0] == 0:
-            print('is cat!')
-        else:
-            print('is dog!')
+        di = {v: k for k, v in item.items()}
+        pred = di[int(predicted[0])]
+
+        print(f"This is {pred}")
+
