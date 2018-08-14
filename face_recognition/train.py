@@ -120,7 +120,12 @@ def train():
     print(f"Val numbers:{len(test_datasets)}")
 
     # Load model
+    # if torch.cuda.is_available():
+    #     model = torch.load(args.model_path + args.model_name).to(device)
+    # else:
+    #     model = torch.load(args.model_path + args.model_name, map_location='cpu')
     model = Net().to(device)
+    model.train()
     print(model)
     # cast
     cast = nn.CrossEntropyLoss()
@@ -128,7 +133,6 @@ def train():
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-8)
 
     for epoch in range(1, args.epochs + 1):
-        model.train()
         start = time.time()
         for images, labels in train_loader:
             images = images.to(device)
@@ -183,7 +187,7 @@ def test():
 
 
 def val():
-    val_datasetss = torchvision.datasets.ImageFolder(root=args.path + 'test/',
+    val_datasetss = torchvision.datasets.ImageFolder(root=args.path + 'val/',
                                                      transform=transform)
     val_loaders = torch.utils.data.DataLoader(dataset=val_datasetss)
     # Load model
@@ -202,9 +206,13 @@ def val():
         _, predicted = torch.max(outputs.data, 1)
 
         if predicted[0] == 0:
-            print('is cat!')
+            print('is obama!')
+        elif predicted[0] == 1:
+            print('is thm!')
+        elif predicted[0] == 2:
+            print('is tlp')
         else:
-            print('is dog!')
+            print('unknown')
 
 
-train()
+# train()
