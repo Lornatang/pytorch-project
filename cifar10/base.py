@@ -101,7 +101,7 @@ class Net(nn.Module):
 
         self.classifier = nn.Sequential(
             nn.Dropout(p=0.75),
-            nn.Linear(in_features=512 * 6 * 6, out_features=512, bias=True),
+            nn.Linear(in_features=512, out_features=512, bias=True),
             nn.ReLU(True),
             nn.Dropout(p=0.75),
             nn.Linear(in_features=512, out_features=256, bias=True),
@@ -209,3 +209,6 @@ def val():
             print('is cat!')
         else:
             print('is dog!')
+
+
+train()
