@@ -123,7 +123,7 @@ def val():
         di = {v: k for k, v in item.items()}
         pred = di[int(predicted[0])]
 
-        print(f"This is {pred}")
+        print(f"This is {pred}!")
 
 
 if __name__ == '__main__':

@@ -39,6 +39,7 @@ transform = transforms.Compose([
     transforms.Resize(128),  # 将图像转化为128 * 128
     transforms.RandomCrop(114),  # 从图像中裁剪一个114 * 114的
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
+    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # 归一化
 ])
 
 # Load data
