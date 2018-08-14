@@ -52,19 +52,14 @@ transform = transforms.Compose([
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # 归一化
 ])
 
+
 # Load data
 train_datasets = torchvision.datasets.ImageFolder(root=args.path + 'train/',
                                                   transform=transform)
-test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'test/',
-                                                 transform=transform)
 
 train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
                                            batch_size=args.batch_size,
                                            shuffle=True)
-
-test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
-                                          batch_size=args.batch_size,
-                                          shuffle=True)
 
 
 class Net(nn.Module):
@@ -120,7 +115,6 @@ item = train_datasets.class_to_idx
 
 def train():
     print(f"Train numbers:{len(train_datasets)}")
-    print(f"Val numbers:{len(test_datasets)}")
 
     # Load model
     if torch.cuda.is_available():
@@ -154,61 +148,7 @@ def train():
             print(f"Epoch [{epoch}/{args.epochs}], "
                   f"Loss: {loss.item():.8f}, "
                   f"Time: {(end-start) * args.display_epoch:.1f}sec!")
-            test()
 
     # Save the model checkpoint
     torch.save(model, args.model_path + args.model_name)
     print(f"Model save to {args.model_path + args.model_name}.")
-
-
-def test():
-    print(f"test numbers: {len(test_datasets)}.")
-    # Load model
-    if torch.cuda.is_available():
-        model = torch.load(args.model_path + args.model_name).to(device)
-    else:
-        model = torch.load(args.model_path + args.model_name, map_location='cpu')
-    model.eval()
-
-    correct_prediction = 0.
-    total = 0
-    for images, labels in test_loader:
-        # to GPU
-        images = images.to(device)
-        labels = labels.to(device)
-        # print prediction
-        outputs = model(images)
-        # equal prediction and acc
-        _, predicted = torch.max(outputs.data, 1)
-        # val_loader total
-        total += labels.size(0)
-        # add correct
-        correct_prediction += (predicted == labels).sum().item()
-
-    print(f"Acc: {(correct_prediction / total):4f}")
-
-
-def val():
-    val_datasetss = torchvision.datasets.ImageFolder(root=args.path + 'val/',
-                                                     transform=transform)
-    val_loaders = torch.utils.data.DataLoader(dataset=val_datasetss)
-    # Load model
-    if torch.cuda.is_available():
-        model = torch.load(args.model_path + args.model_name).to(device)
-    else:
-        model = torch.load(args.model_path + args.model_name, map_location='cpu')
-    model.eval()
-
-    for images, _ in val_loaders:
-        # to GPU
-        images = images.to(device)
-        # print prediction
-        outputs = model(images)
-        # equal prediction and acc
-        _, predicted = torch.max(outputs.data, 1)
-
-        di = {v: k for k, v in item.items()}
-        pred = di[int(predicted[0])]
-
-        print(f"This is {pred}")
-
