@@ -11,7 +11,7 @@ from torch import nn
 
 
 class Net(nn.Module):
-    def __init__(self, category=args.num_classes):
+    def __init__(self, category=10):
         super(Net, self).__init__()
         self.features = nn.Sequential(
             nn.Conv2d(3, 16, 3, 1, 1),
