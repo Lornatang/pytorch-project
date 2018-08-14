@@ -102,7 +102,7 @@ class Net(nn.Module):
             nn.Dropout(p=0.75),
             nn.Linear(in_features=512, out_features=256, bias=True),
             nn.ReLU(True),
-            nn.Linear(in_features=256, out_features=2, bias=True),
+            nn.Linear(in_features=256, out_features=2, bias=True)
         )
 
     def forward(self, x):
@@ -189,6 +189,7 @@ def val():
     val_datasetss = torchvision.datasets.ImageFolder(root=args.path + 'test/',
                                                      transform=transform)
     val_loaders = torch.utils.data.DataLoader(dataset=val_datasetss)
+    # Load model
     if torch.cuda.is_available():
         model = torch.load(args.model_path + args.model_name).to(device)
     else:
