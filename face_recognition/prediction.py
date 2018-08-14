@@ -20,6 +20,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/face/',
                     help="""image dir path default: '../data/face/'.""")
+parser.add_argument('--batch_size', type=int, default=16,
+                    help="""Batch_size default:16.""")
 parser.add_argument('--num_classes', type=int, default=5749,
                     help="""num classes""")
 parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
@@ -35,10 +37,7 @@ if not os.path.exists(args.model_path):
 
 transform = transforms.Compose([
     transforms.Resize(128),  # 将图像转化为32 * 32
-    transforms.RandomHorizontalFlip(p=0.75),  # 有0.75的几率随机旋转
     transforms.RandomCrop(114),  # 从图像中裁剪一个24 * 24的
-    transforms.ColorJitter(brightness=1, contrast=2, saturation=3, hue=0),  # 给图像增加一些随机的光照
-    # transforms.Grayscale(),  # 转化为灰度图
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # 归一化
 ])
@@ -94,7 +93,7 @@ class Net(nn.Module):
 
 def test():
     # Load data
-    test_datasets = torchvision.datasets.ImageFolder(root=args.path,
+    test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'test/',
                                                      transform=transform)
 
     test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
