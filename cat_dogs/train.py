@@ -24,17 +24,17 @@ parser.add_argument('--path', type=str, default='../data/catdog/',
                     help="""image dir path default: '../data/catdog/'.""")
 parser.add_argument('--epochs', type=int, default=50,
                     help="""Epoch default:50.""")
-parser.add_argument('--batch_size', type=int, default=5,
-                    help="""Batch_size default:5.""")
-parser.add_argument('--lr', type=float, default=0.0001,
-                    help="""learing_rate. Default=0.0001""")
+parser.add_argument('--batch_size', type=int, default=64,
+                    help="""Batch_size default:64.""")
+parser.add_argument('--lr', type=float, default=0.00001,
+                    help="""learing_rate. Default=0.00001""")
 parser.add_argument('--num_classes', type=int, default=2,
                     help="""num classes""")
 parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='catdog.pth',
                     help="""Model name.""")
-parser.add_argument('--display_epoch', type=int, default=2)
+parser.add_argument('--display_epoch', type=int, default=5)
 
 args = parser.parse_args()
 
@@ -120,7 +120,7 @@ def train():
     print(f"Val numbers:{len(test_datasets)}")
 
     # Load model
-    model = torch.load(args.model_path + args.model_name, map_location='cpu')
+    model = torch.load(args.model_path + args.model_name).to(device)
     print(model)
     # cast
     cast = nn.CrossEntropyLoss()
@@ -157,7 +157,7 @@ def train():
 
 def test():
     print(f"test numbers: {len(test_datasets)}.")
-    model = torch.load(args.model_path + args.model_name, map_location='cpu')
+    model = torch.load(args.model_path + args.model_name).to(device)
     model.eval()
 
     correct_prediction = 0.
@@ -175,16 +175,14 @@ def test():
         # add correct
         correct_prediction += (predicted == labels).sum().item()
 
-        print(labels)
-
     print(f"Acc: {(correct_prediction / total):4f}")
 
 
 def val():
-    val_datasetss = torchvision.datasets.ImageFolder(root=args.path + 'val/',
+    val_datasetss = torchvision.datasets.ImageFolder(root=args.path + 'test/',
                                                      transform=transform)
     val_loaders = torch.utils.data.DataLoader(dataset=val_datasetss)
-    model = torch.load(args.model_path + args.model_name, map_location='cpu')
+    model = torch.load(args.model_path + args.model_name).to(device)
     model.eval()
 
     for images, _ in val_loaders:
@@ -202,4 +200,4 @@ def val():
 
 
 if __name__ == '__main__':
-    val()
+    train()
