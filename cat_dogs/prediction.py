@@ -58,4 +58,5 @@ class Net(nn.Module):
         return out
 
 
-base.test()
+if __name__ == '__main__':
+    base.test()
