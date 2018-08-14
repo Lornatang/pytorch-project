@@ -58,4 +58,4 @@ class Net(nn.Module):
         return out
 
 
-base.test()
+base.val()
