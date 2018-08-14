@@ -24,8 +24,8 @@ parser.add_argument('--path', type=str, default='../data/',
                     help="""image dir path default: '../data/'.""")
 parser.add_argument('--epochs', type=int, default=50,
                     help="""Epoch default:50.""")
-parser.add_argument('--batch_size', type=int, default=128,
-                    help="""Batch_size default:128.""")
+parser.add_argument('--batch_size', type=int, default=64,
+                    help="""Batch_size default:64.""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
 parser.add_argument('--num_classes', type=int, default=10,
@@ -43,9 +43,9 @@ if not os.path.exists(args.model_path):
     os.makedirs(args.model_path)
 
 transform = transforms.Compose([
-    transforms.Resize(128),  # 将图像转化为800 * 800
+    transforms.Resize(32),  # 将图像转化为32 * 32
     transforms.RandomHorizontalFlip(p=0.75),  # 有0.75的几率随机旋转
-    transforms.RandomCrop(114),  # 从图像中裁剪一个24 * 24的
+    transforms.RandomCrop(24),  # 从图像中裁剪一个24 * 24的
     transforms.ColorJitter(brightness=1, contrast=2, saturation=3, hue=0),  # 给图像增加一些随机的光照
     # transforms.Grayscale(),  # 转化为灰度图
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
@@ -72,69 +72,51 @@ test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
                                           shuffle=True)
 
 
-class ResidualBlock(nn.Module):
-    def __init__(self, inchannel, outchannel, stride=1):
-        super(ResidualBlock, self).__init__()
-        self.left = nn.Sequential(
-            nn.Conv2d(inchannel, outchannel, kernel_size=3, stride=stride, padding=1, bias=False),
-            nn.BatchNorm2d(outchannel),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(outchannel, outchannel, kernel_size=3, stride=stride, padding=1, bias=False),
-            nn.BatchNorm2d(outchannel)
-        )
-        self.shortcut = nn.Sequential()
-        if stride != 1 or inchannel != outchannel:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(inchannel, outchannel, kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(outchannel)
-            )
-
-    def forward(self, x):
-        out = self.left(x)
-        out += self.shortcut(x)
-        out = nn.ReLU(out)
-
-        return out
-
-
-class ResNet(nn.Module):
-    def __init__(self, ResidualBlock, num_classes=args.num_classes):
-        super(ResNet, self).__init__()
-        self.inchannel = 64
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False),
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(3, 64, 3, 1, 1),
             nn.BatchNorm2d(64),
-            nn.ReLU(),
-        )
-        self.layer1 = self.make_layer(ResidualBlock, 64, 2, stride=1)
-        self.layer2 = self.make_layer(ResidualBlock, 128, 2, stride=2)
-        self.layer3 = self.make_layer(ResidualBlock, 256, 2, stride=2)
-        self.layer4 = self.make_layer(ResidualBlock, 512, 2, stride=2)
-        self.fc = nn.Linear(512, num_classes)
+            nn.ReLU(True),
+            nn.MaxPool2d(2, 2),
 
-    def make_layer(self, block, channels, num_blocks, stride):
-        strides = [stride] + [1] * (num_blocks - 1)  # strides=[1,1]
-        layers = []
-        for stride in strides:
-            layers.append(block(self.inchannel, channels, stride))
-            self.inchannel = channels
-        return nn.Sequential(*layers)
+            nn.Conv2d(64, 128, 3, 1, 1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(True),
+            nn.MaxPool2d(2, 2),
+
+            nn.Conv2d(128, 256, 3, 1, 1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(True),
+
+            nn.Conv2d(256, 512, 3, 1, 1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(True),
+
+            nn.Conv2d(512, 512, 3, 1, 1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(True)
+        )
+
+        self.classifier = nn.Sequential(
+            nn.Dropout(p=0.75),
+            nn.Linear(in_features=512 * 6 * 6, out_features=512, bias=True),
+            nn.ReLU(True),
+            nn.Dropout(p=0.75),
+            nn.Linear(in_features=512, out_features=256, bias=True),
+            nn.ReLU(True),
+            nn.Linear(in_features=256, out_features=2, bias=True),
+        )
 
     def forward(self, x):
-        out = self.conv1(x)
-        out = self.layer1(out)
-        out = self.layer2(out)
-        out = self.layer3(out)
-        out = self.layer4(out)
-        out = nn.AvgPool2d(out, 4)
-        out = out.view(out.size(0), -1)
-        out = self.fc(out)
+        out = self.features(x)
+
+        dense = out.view(out.size(0), -1)
+
+        out = self.classifier(dense)
+
         return out
-
-
-def resnet18():
-
-    return ResNet(ResidualBlock)
 
 
 def train():
@@ -142,7 +124,7 @@ def train():
     print(f"Val numbers:{len(test_datasets)}")
 
     # Load model
-    model = resnet18().to(device)
+    model = Net().to(device)
     print(model)
     # cast
     cast = nn.CrossEntropyLoss()
