@@ -24,11 +24,11 @@ parser.add_argument('--path', type=str, default='../data/face/',
                     help="""image dir path default: '../data/face/'.""")
 parser.add_argument('--epochs', type=int, default=100,
                     help="""Epoch default:100.""")
-parser.add_argument('--batch_size', type=int, default=1,
-                    help="""Batch_size default:1.""")
+parser.add_argument('--batch_size', type=int, default=64,
+                    help="""Batch_size default:64.""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
-parser.add_argument('--num_classes', type=int, default=3,
+parser.add_argument('--num_classes', type=int, default=57493,
                     help="""num classes""")
 parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
                     help="""Save model path""")
@@ -53,9 +53,9 @@ transform = transforms.Compose([
 ])
 
 # Load data
-train_datasets = torchvision.datasets.ImageFolder(root=args.path,
+train_datasets = torchvision.datasets.ImageFolder(root=args.path + 'train/',
                                                   transform=transform)
-test_datasets = torchvision.datasets.ImageFolder(root=args.path,
+test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'test/',
                                                  transform=transform)
 
 train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
@@ -159,60 +159,5 @@ def train():
     print(f"Model save to {args.model_path + args.model_name}.")
 
 
-def test():
-    print(f"test numbers: {len(test_datasets)}.")
-    # Load model
-    if torch.cuda.is_available():
-        model = torch.load(args.model_path + args.model_name).to(device)
-    else:
-        model = torch.load(args.model_path + args.model_name, map_location='cpu')
-    model.eval()
-
-    correct_prediction = 0.
-    total = 0
-    for images, labels in test_loader:
-        # to GPU
-        images = images.to(device)
-        labels = labels.to(device)
-        # print prediction
-        outputs = model(images)
-        # equal prediction and acc
-        _, predicted = torch.max(outputs.data, 1)
-        # val_loader total
-        total += labels.size(0)
-        # add correct
-        correct_prediction += (predicted == labels).sum().item()
-
-    print(f"Acc: {(correct_prediction / total):4f}")
-
-
-def val():
-    val_datasetss = torchvision.datasets.ImageFolder(root=args.path + 'val/',
-                                                     transform=transform)
-    val_loaders = torch.utils.data.DataLoader(dataset=val_datasetss)
-    # Load model
-    if torch.cuda.is_available():
-        model = torch.load(args.model_path + args.model_name).to(device)
-    else:
-        model = torch.load(args.model_path + args.model_name, map_location='cpu')
-    model.eval()
-
-    for images, _ in val_loaders:
-        # to GPU
-        images = images.to(device)
-        # print prediction
-        outputs = model(images)
-        # equal prediction and acc
-        _, predicted = torch.max(outputs.data, 1)
-
-        if predicted[0] == 0:
-            print('is obama!')
-        elif predicted[0] == 1:
-            print('is thm!')
-        elif predicted[0] == 2:
-            print('is tlp')
-        else:
-            print('unknown')
-
-
-# train()
+if __name__ == '__main__':
+    train()
