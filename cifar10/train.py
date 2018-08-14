@@ -11,7 +11,7 @@ from torch import nn
 
 
 class Net(nn.Module):
-    def __init__(self):
+    def __init__(self, category=10):
         super(Net, self).__init__()
         self.features = nn.Sequential(
             nn.Conv2d(3, 64, 3, 1, 1),
@@ -44,7 +44,7 @@ class Net(nn.Module):
             nn.Dropout(p=0.75),
             nn.Linear(in_features=512, out_features=256, bias=True),
             nn.ReLU(True),
-            nn.Linear(in_features=256, out_features=2, bias=True),
+            nn.Linear(in_features=256, out_features=category, bias=True),
         )
 
     def forward(self, x):

@@ -43,7 +43,7 @@ if not os.path.exists(args.model_path):
     os.makedirs(args.model_path)
 
 transform = transforms.Compose([
-    transforms.Resize(32),  # 将图像转化为32 * 32
+    # transforms.Resize(32),  # 将图像转化为32 * 32
     transforms.RandomHorizontalFlip(p=0.75),  # 有0.75的几率随机旋转
     transforms.RandomCrop(24),  # 从图像中裁剪一个24 * 24的
     transforms.ColorJitter(brightness=1, contrast=2, saturation=3, hue=0),  # 给图像增加一些随机的光照
@@ -73,7 +73,7 @@ test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
 
 
 class Net(nn.Module):
-    def __init__(self):
+    def __init__(self, category=args.num_classes):
         super(Net, self).__init__()
         self.features = nn.Sequential(
             nn.Conv2d(3, 64, 3, 1, 1),
@@ -106,7 +106,7 @@ class Net(nn.Module):
             nn.Dropout(p=0.75),
             nn.Linear(in_features=512, out_features=256, bias=True),
             nn.ReLU(True),
-            nn.Linear(in_features=256, out_features=2, bias=True),
+            nn.Linear(in_features=256, out_features=category, bias=True),
         )
 
     def forward(self, x):
