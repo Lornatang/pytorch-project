@@ -1,7 +1,7 @@
 """
 # author: shiyipaisizuo
 # contact: shiyipaisizuo@gmail.com
-# file: base.py
+# file: train.py
 # time: 2018/7/30 07:27
 # license: MIT
 """
