@@ -26,8 +26,8 @@ parser.add_argument('--epochs', type=int, default=50,
                     help="""Epoch default:50.""")
 parser.add_argument('--batch_size', type=int, default=64,
                     help="""Batch_size default:64.""")
-parser.add_argument('--lr', type=float, default=0.00001,
-                    help="""learing_rate. Default=0.00001""")
+parser.add_argument('--lr', type=float, default=0.0001,
+                    help="""learing_rate. Default=0.0001""")
 parser.add_argument('--num_classes', type=int, default=2,
                     help="""num classes""")
 parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
@@ -157,7 +157,10 @@ def train():
 
 def test():
     print(f"test numbers: {len(test_datasets)}.")
-    model = torch.load(args.model_path + args.model_name).to(device)
+    if torch.cuda.is_available():
+        model = torch.load(args.model_path + args.model_name).to(device)
+    else:
+        model = torch.load(args.model_path + args.model_name, map_location='cpu')
     model.eval()
 
     correct_prediction = 0.
@@ -197,7 +200,3 @@ def val():
             print('is cat!')
         else:
             print('is dog!')
-
-
-if __name__ == '__main__':
-    train()
