@@ -41,7 +41,7 @@ transform = transforms.Compose([
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # 归一化
 ])
-
+nn.MultiLabelSoftMarginLoss
 # Load data
 train_datasets = torchvision.datasets.ImageFolder(root=args.path + 'train/',
                                                   transform=transform)
