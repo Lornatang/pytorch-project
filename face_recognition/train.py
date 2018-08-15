@@ -22,9 +22,9 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/A/',
                     help="""image dir path default: '../data/A/'.""")
-parser.add_argument('--epochs', type=int, default=100,
-                    help="""Epoch default:100.""")
-parser.add_argument('--batch_size', type=int, default=4,
+parser.add_argument('--epochs', type=int, default=20,
+                    help="""Epoch default:20.""")
+parser.add_argument('--batch_size', type=int, default=1,
                     help="""Batch_size default:.""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
@@ -32,7 +32,7 @@ parser.add_argument('--num_classes', type=int, default=8,
                     help="""num classes""")
 parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
                     help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='faces.pth',
+parser.add_argument('--model_name', type=str, default='face.pth',
                     help="""Model name.""")
 parser.add_argument('--display_epoch', type=int, default=1)
 
@@ -45,9 +45,9 @@ if not os.path.exists(args.model_path):
 transform = transforms.Compose([
     transforms.Resize(128),  # 将图像转化为32 * 32
     transforms.RandomHorizontalFlip(p=0.75),  # 有0.75的几率随机旋转
-    transforms.RandomCrop(114),  # 从图像中裁剪一个24 * 24的
+    # transforms.RandomCrop(114),  # 从图像中裁剪一个24 * 24的
     transforms.ColorJitter(brightness=1, contrast=2, saturation=3, hue=0),  # 给图像增加一些随机的光照
-    # transforms.Grayscale(),  # 转化为灰度图
+    transforms.Grayscale(),  # 转化为灰度图
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # 归一化
 ])
@@ -89,20 +89,18 @@ class Net(nn.Module):
             nn.BatchNorm2d(512),
             nn.ReLU(True),
 
-            nn.Conv2d(512, 512, 3, 1, 1),
-            nn.BatchNorm2d(512),
+            nn.Conv2d(512, 256, 3, 1, 1),
+            nn.BatchNorm2d(256),
             nn.ReLU(True),
             nn.MaxPool2d(2, 2)
         )
 
         self.classifier = nn.Sequential(
-            nn.Dropout(p=0.75),
-            nn.Linear(in_features=512 * 14 * 14, out_features=512, bias=True),
+            nn.Linear(256 * 14 * 14, 1024),
             nn.ReLU(True),
-            nn.Dropout(p=0.75),
-            nn.Linear(in_features=512, out_features=256, bias=True),
+            nn.Linear(1024, 512),
             nn.ReLU(True),
-            nn.Linear(in_features=256, out_features=category, bias=True)
+            nn.Linear(512, category)
         )
 
     def forward(self, x):
@@ -128,7 +126,7 @@ def train():
     model.train()
     print(model)
     # cast
-    cast = nn.CrossEntropyLoss()
+    cast = nn.MultiMarginLoss()
     # Optimization
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-8)
 
@@ -152,7 +150,25 @@ def train():
             print(f"Epoch [{epoch}/{args.epochs}], "
                   f"Loss: {loss.item():.8f}, "
                   f"Time: {(end-start) * args.display_epoch:.1f}sec!")
-            # test()
+
+            model.eval()
+
+            correct_prediction = 0.
+            total = 0
+            for images, labels in test_loader:
+                # to GPU
+                images = images.to(device)
+                labels = labels.to(device)
+                # print prediction
+                outputs = model(images)
+                # equal prediction and acc
+                _, predicted = torch.max(outputs.data, 1)
+                # val_loader total
+                total += labels.size(0)
+                # add correct
+                correct_prediction += (predicted == labels).sum().item()
+
+            print(f"Acc: {(correct_prediction / total):4f}")
 
     # Save the model checkpoint
     torch.save(model, args.model_path + args.model_name)
