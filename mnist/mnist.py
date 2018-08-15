@@ -22,7 +22,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser()
 parser.add_argument('--path', type=str, default='../data/mnist/',
                     help="""image path. Default='../data/mnist/'.""")
-parser.add_argument('--epochs', type=int, default=10,
+parser.add_argument('--epochs', type=int, default=20,
                     help="""num epochs. Default=10""")
 parser.add_argument('--num_classes', type=int, default=10,
                     help="""0 ~ 9,. Default=10""")
@@ -30,11 +30,11 @@ parser.add_argument('--batch_size', type=int, default=100,
                     help="""batch size. Default=128""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
-parser.add_argument('--model_path', type=str, default='../../model/pytorch/mnist/mnist/',
+parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
                     help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='best.pth',
+parser.add_argument('--model_name', type=str, default='mnist.pth',
                     help="""Model name""")
-parser.add_argument('--display_epoch', type=int, default=2)
+parser.add_argument('--display_epoch', type=int, default=1)
 args = parser.parse_args()
 
 # Create model
@@ -130,8 +130,8 @@ def main():
     for epoch in range(1, args.epochs + 1):
         start = time.time()
         for images, labels in train_loader:
-            images = Variable(images).cuda()
-            labels = Variable(labels).cuda()
+            images = images.to(device)
+            labels = labels.to(device)
 
             # Forward pass
             outputs = model(images)
@@ -153,16 +153,16 @@ def main():
             correct = 0.
             total = 0
             for images, labels in test_loader:
-                images = Variable(images).cuda()
-                labels = Variable(labels).cuda()
+                images = images.to(device)
+                labels = labels.to(device)
 
                 outputs = model(images)
                 _, predicted = torch.max(outputs.data, 1)
 
                 total += labels.size(0)
-                correct += (predicted == labels).sum()
+                correct += (predicted == labels).sum().item()
 
-            print(f"Test Accuracy: {(correct / total):.4f}")
+            print(f"Test Accuracy: {100 * correct/ total:.4f}")
 
     # Save the model checkpoint
     torch.save(model, args.model_path + args.model_name)
