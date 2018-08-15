@@ -13,16 +13,16 @@ import cv2
 import dlib
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--path', type=str, default='../data/face/val/',
+parser.add_argument('--path', type=str, default='../data/face/train/',
                     help="""Train path dir.""")
 args = parser.parse_args()
 
 os.system(f"find {args.path} -name '.DS_Store' -type f -delete")
+# DLib提取图片人脸特征器
+detector = dlib.get_frontal_face_detector()
 
 
 def get_face_location():
-    # DLib提取图片人脸特征器
-    detector = dlib.get_frontal_face_detector()
     # 正确提取人脸图片数
     correct = 0
     # 错误提取人脸图片数
@@ -49,7 +49,7 @@ def get_face_location():
                 # 截取图片中人脸
                 face = img[x1:y1, x2:y2]
                 # 调整图片大小
-                face = cv2.resize(face, (250, 250))
+                face = cv2.resize(face, (128, 128))
                 # 写入截取人脸后的图片
                 cv2.imwrite(f"{file}", face)
 
@@ -58,11 +58,11 @@ def get_face_location():
                 correct += 1
             else:
                 error += 1
-                print(f"{file} is error!")
+                print(f"{file} detector is error!")
 
             total += 1
 
-    print(f"True:{correct} False:{error} Acc:{100 * (correct / total)}%!")
+    print(f"True: {correct}\nFalse: {error}\nAcc: {100 * (correct / total)}%!")
 
 
 get_face_location()
