@@ -17,9 +17,18 @@ parser.add_argument('--path', type=str, default='../data/face/val/',
                     help="""Train path dir.""")
 args = parser.parse_args()
 
+os.system(f"find {args.path} -name '.DS_Store' -type f -delete")
+
 
 def get_face_location():
+    # DLib提取图片人脸特征器
     detector = dlib.get_frontal_face_detector()
+    # 正确提取人脸图片数
+    correct = 0
+    # 错误提取人脸图片数
+    error = 0
+    # 总图片数
+    total = 0
     for path_dir in os.listdir(args.path):
         for files in os.listdir(args.path + path_dir + '/'):
             #  图片路径
@@ -31,19 +40,29 @@ def get_face_location():
             # 使用detector进行人脸检测
             dets = detector(gray_img, 1)
 
-            for i, d in enumerate(dets):
+            for _, d in enumerate(dets):
                 x1 = d.top() if d.top() > 0 else 0
                 y1 = d.bottom() if d.bottom() > 0 else 0
                 x2 = d.left() if d.left() > 0 else 0
                 y2 = d.right() if d.right() > 0 else 0
 
+                # 截取图片中人脸
                 face = img[x1:y1, x2:y2]
                 # 调整图片大小
-                face = cv2.resize(face, (128, 128))
-
+                face = cv2.resize(face, (250, 250))
+                # 写入截取人脸后的图片
                 cv2.imwrite(f"{file}", face)
+
+            # 验证
+            if dets:
+                correct += 1
+            else:
+                error += 1
+                print(f"{file} is error!")
+
+            total += 1
+
+    print(f"True:{correct} False:{error} Acc:{100 * (correct / total)}%!")
 
 
 get_face_location()
-
-
