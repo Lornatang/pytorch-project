@@ -20,7 +20,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/catdog/',
                     help="""image dir path default: '../data/catdog/'.""")
-parser.add_argument('--batch_size', type=int, default=64,
+parser.add_argument('--batch_size', type=int, default=1,
                     help="""Batch_size default:64.""")
 parser.add_argument('--num_classes', type=int, default=2,
                     help="""num classes""")
@@ -41,7 +41,6 @@ transform = transforms.Compose([
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # 归一化
 ])
-nn.MultiLabelSoftMarginLoss
 # Load data
 train_datasets = torchvision.datasets.ImageFolder(root=args.path + 'train/',
                                                   transform=transform)
@@ -97,7 +96,7 @@ class Net(nn.Module):
     def forward(self, x):
         out = self.features(x)
 
-        dense = out.view(out.size(0), -1)
+        dense = out.reshape(out.size(0), -1)
 
         out = self.classifier(dense)
 
@@ -111,19 +110,18 @@ def val():
     else:
         model = torch.load(args.model_path + args.model_name, map_location='cpu')
     model.eval()
-
-    for images, _ in val_loader:
+    for i, (images, _) in enumerate(val_loader):
         # to GPU
         images = images.to(device)
         # print prediction
         outputs = model(images)
         # equal prediction and acc
         _, predicted = torch.max(outputs.data, 1)
-
         di = {v: k for k, v in item.items()}
         pred = di[int(predicted[0])]
+        file = str(val_datasets.imgs[i])[2:-5]
 
-        print(f"This is {pred}!")
+        print(f"{i+1}.({file}) is {pred}!")
 
 
 if __name__ == '__main__':

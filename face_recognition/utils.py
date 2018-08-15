@@ -62,7 +62,7 @@ def get_face_location():
 
             total += 1
 
-    print(f"True: {correct}\nFalse: {error}\nAcc: {100 * (correct / total)}%!")
+    print(f"True: {correct}\nFalse: {error}\nAcc: {100 * (correct / total):.2f}%!")
 
 
 get_face_location()
