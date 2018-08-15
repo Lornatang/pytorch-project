@@ -1,3 +1,4 @@
+face_recognition_models
 dlib
 face_recognition
 opencv-python
