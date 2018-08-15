@@ -8,8 +8,8 @@
 
 import argparse
 import os
-
 import time
+
 import torch
 import torchvision
 from torch import nn
@@ -20,19 +20,19 @@ from torchvision import transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../data/face/',
-                    help="""image dir path default: '../data/face/'.""")
-parser.add_argument('--epochs', type=int, default=12,
+parser.add_argument('--path', type=str, default='../data/A/',
+                    help="""image dir path default: '../data/A/'.""")
+parser.add_argument('--epochs', type=int, default=100,
                     help="""Epoch default:100.""")
-parser.add_argument('--batch_size', type=int, default=16,
-                    help="""Batch_size default:16.""")
+parser.add_argument('--batch_size', type=int, default=4,
+                    help="""Batch_size default:.""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
-parser.add_argument('--num_classes', type=int, default=5749,
+parser.add_argument('--num_classes', type=int, default=8,
                     help="""num classes""")
 parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
                     help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='face.pth',
+parser.add_argument('--model_name', type=str, default='faces.pth',
                     help="""Model name.""")
 parser.add_argument('--display_epoch', type=int, default=1)
 
