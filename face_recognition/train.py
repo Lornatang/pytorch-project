@@ -71,7 +71,7 @@ class Net(nn.Module):
     def __init__(self, category=args.num_classes):
         super(Net, self).__init__()
         self.features = nn.Sequential(
-            nn.Conv2d(3, 64, 3, 1, 1),
+            nn.Conv2d(1, 64, 3, 1, 1),
             nn.BatchNorm2d(64),
             nn.ReLU(True),
             nn.MaxPool2d(2, 2),
