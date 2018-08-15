@@ -22,9 +22,9 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/A/',
                     help="""image dir path default: '../data/A/'.""")
-parser.add_argument('--epochs', type=int, default=50,
+parser.add_argument('--epochs', type=int, default=100,
                     help="""Epoch default:100.""")
-parser.add_argument('--batch_size', type=int, default=1,
+parser.add_argument('--batch_size', type=int, default=4,
                     help="""Batch_size default:.""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
@@ -71,7 +71,12 @@ class Net(nn.Module):
     def __init__(self, category=args.num_classes):
         super(Net, self).__init__()
         self.features = nn.Sequential(
-            nn.Conv2d(3, 128, 3, 1, 1),
+            nn.Conv2d(3, 64, 3, 1, 1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(True),
+            nn.MaxPool2d(2, 2),
+
+            nn.Conv2d(64, 128, 3, 1, 1),
             nn.BatchNorm2d(128),
             nn.ReLU(True),
             nn.MaxPool2d(2, 2),
@@ -79,29 +84,25 @@ class Net(nn.Module):
             nn.Conv2d(128, 256, 3, 1, 1),
             nn.BatchNorm2d(256),
             nn.ReLU(True),
-            nn.MaxPool2d(2, 2),
 
             nn.Conv2d(256, 512, 3, 1, 1),
             nn.BatchNorm2d(512),
             nn.ReLU(True),
-            nn.MaxPool2d(2, 2),
 
-            nn.Conv2d(512, 1024, 3, 1, 1),
-            nn.BatchNorm2d(1024),
-            nn.ReLU(True),
-
-            nn.Conv2d(1024, 512, 3, 1, 1),
+            nn.Conv2d(512, 512, 3, 1, 1),
             nn.BatchNorm2d(512),
             nn.ReLU(True),
             nn.MaxPool2d(2, 2)
         )
 
         self.classifier = nn.Sequential(
-            nn.Linear(512 * 7 * 7, 1024),
+            nn.Dropout(p=0.75),
+            nn.Linear(in_features=512 * 14 * 14, out_features=512, bias=True),
             nn.ReLU(True),
-            nn.Linear(1024, 512),
+            nn.Dropout(p=0.75),
+            nn.Linear(in_features=512, out_features=256, bias=True),
             nn.ReLU(True),
-            nn.Linear(512, category)
+            nn.Linear(in_features=256, out_features=category, bias=True)
         )
 
     def forward(self, x):
@@ -110,6 +111,7 @@ class Net(nn.Module):
         dense = out.view(out.size(0), -1)
 
         out = self.classifier(dense)
+
         return out
 
 
@@ -126,7 +128,7 @@ def train():
     model.train()
     print(model)
     # cast
-    cast = nn.MultiMarginLoss()
+    cast = nn.CrossEntropyLoss()
     # Optimization
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-8)
 
@@ -150,24 +152,7 @@ def train():
             print(f"Epoch [{epoch}/{args.epochs}], "
                   f"Loss: {loss.item():.8f}, "
                   f"Time: {(end-start) * args.display_epoch:.1f}sec!")
-            model.eval()
-
-            correct_prediction = 0.
-            total = 0
-            for images, labels in test_loader:
-                # to GPU
-                images = images.to(device)
-                labels = labels.to(device)
-                # print prediction
-                outputs = model(images)
-                # equal prediction and acc
-                _, predicted = torch.max(outputs.data, 1)
-                # val_loader total
-                total += labels.size(0)
-                # add correct
-                correct_prediction += (predicted == labels).sum().item()
-
-            print(f"Acc: {(correct_prediction / total):4f}")
+            # test()
 
     # Save the model checkpoint
     torch.save(model, args.model_path + args.model_name)

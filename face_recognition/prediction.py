@@ -20,7 +20,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/A/',
                     help="""image dir path default: '../data/A/'.""")
-parser.add_argument('--batch_size', type=int, default=1,
+parser.add_argument('--batch_size', type=int, default=4,
                     help="""Batch_size default:16.""")
 parser.add_argument('--num_classes', type=int, default=8,
                     help="""num classes""")
@@ -38,27 +38,16 @@ if not os.path.exists(args.model_path):
 transform = transforms.Compose([
     transforms.Resize(128),  # 将图像转化为32 * 32
     transforms.RandomCrop(114),  # 从图像中裁剪一个24 * 24的
-    transforms.Grayscale(),
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # 归一化
 ])
 
 
 class Net(nn.Module):
-    def __init__(self, category=args.num_classes):
+    def __init__(self, category=3):
         super(Net, self).__init__()
         self.features = nn.Sequential(
-            nn.Conv2d(1, 16, 3, 1, 1),
-            nn.BatchNorm2d(16),
-            nn.ReLU(True),
-            nn.MaxPool2d(2, 2),
-
-            nn.Conv2d(16, 32, 3, 1, 1),
-            nn.BatchNorm2d(32),
-            nn.ReLU(True),
-            nn.MaxPool2d(2, 2),
-
-            nn.Conv2d(32, 64, 3, 1, 1),
+            nn.Conv2d(3, 64, 3, 1, 1),
             nn.BatchNorm2d(64),
             nn.ReLU(True),
             nn.MaxPool2d(2, 2),
@@ -66,21 +55,30 @@ class Net(nn.Module):
             nn.Conv2d(64, 128, 3, 1, 1),
             nn.BatchNorm2d(128),
             nn.ReLU(True),
+            nn.MaxPool2d(2, 2),
 
-            nn.Conv2d(128, 128, 3, 1, 1),
-            nn.BatchNorm2d(128),
+            nn.Conv2d(128, 256, 3, 1, 1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(True),
+
+            nn.Conv2d(256, 512, 3, 1, 1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(True),
+
+            nn.Conv2d(512, 512, 3, 1, 1),
+            nn.BatchNorm2d(512),
             nn.ReLU(True),
             nn.MaxPool2d(2, 2)
         )
 
         self.classifier = nn.Sequential(
             nn.Dropout(p=0.75),
-            nn.Linear(128 * 7 * 7, 128),
+            nn.Linear(in_features=512 * 14 * 14, out_features=512, bias=True),
             nn.ReLU(True),
             nn.Dropout(p=0.75),
-            nn.Linear(128, 128),
+            nn.Linear(in_features=512, out_features=256, bias=True),
             nn.ReLU(True),
-            nn.Linear(128, category)
+            nn.Linear(in_features=256, out_features=category, bias=True)
         )
 
     def forward(self, x):
@@ -89,6 +87,7 @@ class Net(nn.Module):
         dense = out.view(out.size(0), -1)
 
         out = self.classifier(dense)
+
         return out
 
 
