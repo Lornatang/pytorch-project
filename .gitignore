@@ -3,3 +3,4 @@ data
 .DS_Store
 *.pyc
 face_recognition/face.py___jb_tmp___
+.vscode/settings.json
