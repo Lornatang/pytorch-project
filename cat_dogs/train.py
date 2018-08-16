@@ -8,13 +8,15 @@
 
 import argparse
 import os
-
 import time
+
 import torch
 import torchvision
 from torch import nn
 from torch import optim
 from torchvision import transforms
+
+from . import resnet
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -117,18 +119,20 @@ def train():
     print(f"Train numbers:{len(train_datasets)}")
 
     # Load model
-    if torch.cuda.is_available():
-        model = torch.load(args.model_path + args.model_name).to(device)
-    else:
-        model = torch.load(args.model_path + args.model_name, map_location='cpu')
+    # if torch.cuda.is_available():
+    #     model = torch.load(args.model_path + args.model_name).to(device)
+    # else:
+    #     model = torch.load(args.model_path + args.model_name, map_location='cpu')
+    model = resnet.resnet18(pretrained=True).to(device)
     print(model)
     # cast
-    cast = nn.CrossEntropyLoss()
+    cast = nn.CrossEntropyLoss().to(device)
     # Optimization
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
+    model.train()
     for epoch in range(1, args.epochs + 1):
-        model.train()
+
         start = time.time()
         for images, labels in train_loader:
             images = images.to(device)
