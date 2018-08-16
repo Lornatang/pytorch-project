@@ -21,7 +21,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/catdog/',
                     help="""image dir path default: '../data/catdog/'.""")
-parser.add_argument('--epochs', type=int, default=50,
+parser.add_argument('--epochs', type=int, default=10,
                     help="""Epoch default:50.""")
 parser.add_argument('--batch_size', type=int, default=64,
                     help="""Batch_size default:64.""")
@@ -65,13 +65,10 @@ def train():
     print(f"Train numbers:{len(train_datasets)}")
 
     # Load model
-    # if torch.cuda.is_available():
-    #     model = torch.load(args.model_path + args.model_name).to(device)
-    # else:
-    #     model = torch.load(args.model_path + args.model_name, map_location='cpu')
-    model = models.resnet18(pretrained=True).to(device)
-    model.avgpool = nn.AvgPool2d(4, 1).to(device)
-    model.fc = nn.Linear(512, 2).to(device)
+    if torch.cuda.is_available():
+        model = torch.load(args.model_path + args.model_name).to(device)
+    else:
+        model = torch.load(args.model_path + args.model_name, map_location='cpu')
     print(model)
     # cast
     cast = nn.CrossEntropyLoss().to(device)
