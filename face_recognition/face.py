@@ -13,8 +13,8 @@ import cv2
 import face_recognition
 
 parser = argparse.ArgumentParser("""Face recognition!""")
-parser.add_argument('--path', '-p', type=str, default='../data/face/train/',
-                    help="""Known face path dir. Default: '../data/face/train/'""")
+parser.add_argument('--path', '-p', type=str, default='../data/face/A/',
+                    help="""Known face path dir. Default: '../data/face/A/'""")
 args = parser.parse_args()
 
 
@@ -64,7 +64,7 @@ while True:
         face_names = []
         for face_encoding in face_encodings:
             # See if the face is a match for the known face(s)
-            matches = face_recognition.compare_faces(known_face_encodings, face_encoding, tolerance=0.2)
+            matches = face_recognition.compare_faces(known_face_encodings, face_encoding, tolerance=0.5)
             name = "Unknown"
 
             # If a match was found in known_face_encodings, just use the first one.
