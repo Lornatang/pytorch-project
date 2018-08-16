@@ -6,10 +6,17 @@
 # license: MIT
 """
 
+import argparse
 import os
 
 import cv2
 import face_recognition
+
+parser = argparse.ArgumentParser("""Face recognition!""")
+parser.add_argument('--path', '-p', type=str, default='../data/face/train/',
+                    help="""Known face path dir. Default: '../data/face/train/'""")
+args = parser.parse_args()
+
 
 # Get a reference to webcam #0 (the default one)
 video_capture = cv2.VideoCapture(0)
@@ -18,10 +25,10 @@ video_capture = cv2.VideoCapture(0)
 known_face_encodings = []
 known_face_names = []
 
-for path_dir in os.listdir('../data/A/train/'):
-    for dir in os.listdir('../data/A/train/' + path_dir + '/'):
+for path_dir in os.listdir(args.path):
+    for dir in os.listdir(args.path + path_dir + '/'):
         # 图片绝对路径
-        file = os.path.join('../data/A/train/', path_dir, dir)
+        file = os.path.join(args.path, path_dir, dir)
         # 读取图片
         img = face_recognition.load_image_file(file)
         # 提取图片人脸特征
