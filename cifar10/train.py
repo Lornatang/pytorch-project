@@ -6,15 +6,6 @@
 # license: MIT
 """
 
-
-"""
-# author: shiyipaisizuo
-# contact: shiyipaisizuo@gmail.com
-# file: train.py
-# time: 2018/8/13 09:23
-# license: MIT
-"""
-
 import argparse
 import os
 

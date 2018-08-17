@@ -19,13 +19,13 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/catdog/',
                     help="""image dir path default: '../data/catdog/'.""")
-parser.add_argument('--batch_size', type=int, default=64,
-                    help="""Batch_size default:64.""")
-parser.add_argument('--num_classes', type=int, default=2,
+parser.add_argument('--batch_size', type=int, default=128,
+                    help="""Batch_size default:128.""")
+parser.add_argument('--num_classes', type=int, default=10,
                     help="""num classes""")
 parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
                     help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='catdog.pth',
+parser.add_argument('--model_name', type=str, default='cifar10.pth',
                     help="""Model name.""")
 
 args = parser.parse_args()
