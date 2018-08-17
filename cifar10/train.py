@@ -6,45 +6,144 @@
 # license: MIT
 """
 
-import base
-from torch import nn
+
+"""
+# author: shiyipaisizuo
+# contact: shiyipaisizuo@gmail.com
+# file: train.py
+# time: 2018/8/13 09:23
+# license: MIT
+"""
+
+import argparse
+import os
+
+import time
+import torch
+import torchvision
+from torch import nn, optim
+from torchvision import transforms
+
+# Device configuration
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+parser = argparse.ArgumentParser("""Image classifical!""")
+parser.add_argument('--path', type=str, default='../data/cifar10/',
+                    help="""image dir path default: '../data/cifar10/'.""")
+parser.add_argument('--epochs', type=int, default=50,
+                    help="""Epoch default:50.""")
+parser.add_argument('--batch_size', type=int, default=256,
+                    help="""Batch_size default:256.""")
+parser.add_argument('--lr', type=float, default=0.0001,
+                    help="""learing_rate. Default=0.0001""")
+parser.add_argument('--num_classes', type=int, default=10,
+                    help="""num classes""")
+parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
+                    help="""Save model path""")
+parser.add_argument('--model_name', type=str, default='cifar10.pth',
+                    help="""Model name.""")
+parser.add_argument('--display_epoch', type=int, default=5)
+
+args = parser.parse_args()
+
+# Create model
+if not os.path.exists(args.model_path):
+    os.makedirs(args.model_path)
+
+transform = transforms.Compose([
+    # transforms.Resize(32),  # 将图像转化为32 * 32
+    transforms.RandomHorizontalFlip(p=0.75),  # 有0.75的几率随机旋转
+    transforms.RandomCrop(24),  # 从图像中裁剪一个24 * 24的
+    transforms.ColorJitter(brightness=1, contrast=2, saturation=3, hue=0),  # 给图像增加一些随机的光照
+    transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
+    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # 归一化
+])
 
 
-class Net(nn.Module):
-    def __init__(self, category=args.num_classes):
-        super(Net, self).__init__()
-        self.features = nn.Sequential(
-            nn.Conv2d(3, 16, 3, 1, 1),
-            nn.BatchNorm2d(16),
-            nn.ReLU(True),
-            nn.MaxPool2d(2, 2),
+# Load data
+train_datasets = torchvision.datasets.CIFAR10(root=args.path,
+                                              transform=transform,
+                                              download=True,
+                                              train=True)
 
-            nn.Conv2d(16, 32, 3, 1, 1),
-            nn.BatchNorm2d(32),
-            nn.ReLU(True),
-            nn.MaxPool2d(2, 2)
-        )
+train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
+                                           batch_size=args.batch_size,
+                                           shuffle=True)
 
-        self.classifier = nn.Sequential(
-            nn.Dropout(p=0.75),
-            nn.Linear(in_features=32*6*6, out_features=256, bias=True),
-            nn.ReLU(True),
-            nn.Dropout(p=0.75),
-            nn.Linear(in_features=256, out_features=128, bias=True),
-            nn.ReLU(True),
+test_datasets = torchvision.datasets.CIFAR10(root=args.path,
+                                             transform=transform,
+                                             download=True,
+                                             train=False)
 
-            nn.Linear(in_features=128, out_features=category, bias=True),
-        )
+test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
+                                          batch_size=args.batch_size,
+                                          shuffle=True)
 
-    def forward(self, x):
-        out = self.features(x)
 
-        dense = out.view(out.size(0), -1)
+def train():
+    print(f"Train numbers:{len(train_datasets)}")
 
-        out = self.classifier(dense)
+    # Load model
+    # if torch.cuda.is_available():
+    #     model = torch.load(args.model_path + args.model_name).to(device)
+    # else:
+    #     model = torch.load(args.model_path + args.model_name, map_location='cpu')
+    model = torchvision.models.resnet18(pretrained=True).to(device)
+    model.avgpool = nn.AvgPool2d(1, 1)
+    model.fc = nn.Linear(512, args.num_classes)
+    print(model)
+    # cast
+    cast = nn.CrossEntropyLoss().to(device)
+    # Optimization
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
-        return out
+    model.train()
+    for epoch in range(1, args.epochs + 1):
+        model.train()
+        # start time
+        start = time.time()
+        for images, labels in train_loader:
+            images = images.to(device)
+            labels = labels.to(device)
+
+            # Forward pass
+            outputs = model(images)
+            loss = cast(outputs, labels)
+
+            # Backward and optimize
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        if epoch % args.display_epoch == 0:
+            end = time.time()
+            print(f"Epoch [{epoch}/{args.epochs}], "
+                  f"Loss: {loss.item():.8f}, "
+                  f"Time: {(end-start) * args.display_epoch:.1f}sec!")
+
+            model.eval()
+
+            correct_prediction = 0.
+            total = 0
+            for images, labels in test_loader:
+                # to GPU
+                images = images.to(device)
+                labels = labels.to(device)
+                # print prediction
+                outputs = model(images)
+                # equal prediction and acc
+                _, predicted = torch.max(outputs.data, 1)
+                # val_loader total
+                total += labels.size(0)
+                # add correct
+                correct_prediction += (predicted == labels).sum().item()
+
+            print(f"Acc: {(correct_prediction / total):4f}")
+
+    # Save the model checkpoint
+    torch.save(model, args.model_path + args.model_name)
+    print(f"Model save to {args.model_path + args.model_name}.")
 
 
 if __name__ == '__main__':
-    base.train()
+    train()
