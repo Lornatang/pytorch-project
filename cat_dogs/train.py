@@ -21,7 +21,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/catdog/',
                     help="""image dir path default: '../data/catdog/'.""")
-parser.add_argument('--epochs', type=int, default=50,
+parser.add_argument('--epochs', type=int, default=10,
                     help="""Epoch default:50.""")
 parser.add_argument('--batch_size', type=int, default=64,
                     help="""Batch_size default:64.""")
@@ -33,7 +33,7 @@ parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='catdog.pth',
                     help="""Model name.""")
-parser.add_argument('--display_epoch', type=int, default=5)
+parser.add_argument('--display_epoch', type=int, default=1)
 
 args = parser.parse_args()
 
@@ -52,16 +52,16 @@ transform = transforms.Compose([
 
 
 # Load data
-train_datasets = torchvision.datasets.ImageFolder(root=args.path + 'train/',
-                                                  transform=transform)
+test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'test/',
+                                                 transform=transform)
 
-train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
-                                           batch_size=args.batch_size,
-                                           shuffle=True)
+test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
+                                          batch_size=args.batch_size,
+                                          shuffle=True)
 
 
 def train():
-    print(f"Train numbers:{len(train_datasets)}")
+    print(f"Train numbers:{len(test_datasets)}")
 
     # Load model
     if torch.cuda.is_available():
@@ -76,9 +76,10 @@ def train():
 
     model.train()
     for epoch in range(1, args.epochs + 1):
+        model.train()
         # start time
         start = time.time()
-        for images, labels in train_loader:
+        for images, labels in test_loader:
             images = images.to(device)
             labels = labels.to(device)
 
@@ -96,6 +97,25 @@ def train():
             print(f"Epoch [{epoch}/{args.epochs}], "
                   f"Loss: {loss.item():.8f}, "
                   f"Time: {(end-start) * args.display_epoch:.1f}sec!")
+
+            model.eval()
+
+            correct_prediction = 0.
+            total = 0
+            for images, labels in test_loader:
+                # to GPU
+                images = images.to(device)
+                labels = labels.to(device)
+                # print prediction
+                outputs = model(images)
+                # equal prediction and acc
+                _, predicted = torch.max(outputs.data, 1)
+                # val_loader total
+                total += labels.size(0)
+                # add correct
+                correct_prediction += (predicted == labels).sum().item()
+
+            print(f"Acc: {(correct_prediction / total):4f}")
 
     # Save the model checkpoint
     torch.save(model, args.model_path + args.model_name)
