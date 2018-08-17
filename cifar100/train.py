@@ -8,8 +8,8 @@
 
 import argparse
 import os
-
 import time
+
 import torch
 import torchvision
 from torch import nn, optim
@@ -21,19 +21,19 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/cifar100/',
                     help="""image dir path default: '../data/cifar100/'.""")
-parser.add_argument('--epochs', type=int, default=50,
+parser.add_argument('--epochs', type=int, default=10,
                     help="""Epoch default:50.""")
-parser.add_argument('--batch_size', type=int, default=256,
-                    help="""Batch_size default:256.""")
-parser.add_argument('--lr', type=float, default=0.0001,
-                    help="""learing_rate. Default=0.0001""")
+parser.add_argument('--batch_size', type=int, default=128,
+                    help="""Batch_size default:128.""")
+parser.add_argument('--lr', type=float, default=0.00005,
+                    help="""learing_rate. Default=0.00005""")
 parser.add_argument('--num_classes', type=int, default=100,
                     help="""num classes""")
 parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='cifar100.pth',
                     help="""Model name.""")
-parser.add_argument('--display_epoch', type=int, default=5)
+parser.add_argument('--display_epoch', type=int, default=1)
 
 args = parser.parse_args()
 
@@ -81,7 +81,7 @@ def train():
         model = torch.load(args.model_path + args.model_name, map_location='cpu')
     print(model)
     # cast
-    cast = nn.CrossEntropyLoss().to(device)
+    cast = nn.MultiMarginLoss().to(device)
     # Optimization
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-8)
 
