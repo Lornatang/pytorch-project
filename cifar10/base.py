@@ -108,6 +108,9 @@ class Net(nn.Module):
         return out
 
 
+d = {'airplane': 0, 'car': 1, 'bird': 2, 'cat': 3, 'deer': 4, 'dog': 5, 'frog': 6, 'horse': 7, 'ship': 8, 'truck': 9}
+
+
 def train():
     print(f"Train numbers:{len(train_datasets)}")
     print(f"Val numbers:{len(test_datasets)}")
@@ -198,3 +201,4 @@ def val():
             print('is cat!')
         else:
             print('is dog!')
+
