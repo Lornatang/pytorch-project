@@ -17,10 +17,10 @@ from torchvision import transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../data/catdog/',
-                    help="""image dir path default: '../data/catdog/'.""")
-parser.add_argument('--batch_size', type=int, default=128,
-                    help="""Batch_size default:128.""")
+parser.add_argument('--path', type=str, default='../data/cifar10/',
+                    help="""image dir path default: '../data/cifar10/'.""")
+parser.add_argument('--batch_size', type=int, default=256,
+                    help="""Batch_size default:256.""")
 parser.add_argument('--num_classes', type=int, default=10,
                     help="""num classes""")
 parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
@@ -35,15 +35,17 @@ if not os.path.exists(args.model_path):
     os.makedirs(args.model_path)
 
 transform = transforms.Compose([
-    transforms.Resize(128),  # 将图像转化为128 * 128
-    transforms.RandomCrop(114),  # 从图像中裁剪一个114 * 114的
+    transforms.Resize(32),  # 将图像转化为128 * 128
+    transforms.RandomCrop(24),  # 从图像中裁剪一个114 * 114的
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),  # 归一化
 ])
 
 # Load data
-test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'test/',
-                                                 transform=transform)
+test_datasets = torchvision.datasets.CIFAR10(root=args.path,
+                                             download=True,
+                                             transform=transform,
+                                             train=False)
 
 
 test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
