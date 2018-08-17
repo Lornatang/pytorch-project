@@ -80,8 +80,8 @@ def train():
     # else:
     #     model = torch.load(args.model_path + args.model_name, map_location='cpu')
     model = torchvision.models.resnet18(pretrained=True).to(device)
-    model.avgpool = nn.AvgPool2d(1, 1)
-    model.fc = nn.Linear(512, args.num_classes)
+    model.avgpool = nn.AvgPool2d(1, 1).to(device)
+    model.fc = nn.Linear(512, args.num_classes).to(device)
     print(model)
     # cast
     cast = nn.CrossEntropyLoss().to(device)
