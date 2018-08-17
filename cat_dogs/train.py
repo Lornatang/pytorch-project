@@ -52,16 +52,16 @@ transform = transforms.Compose([
 
 
 # Load data
-test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'test/',
-                                                 transform=transform)
+train_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
+                                                  transform=transform)
 
-test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
-                                          batch_size=args.batch_size,
-                                          shuffle=True)
+train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
+                                           batch_size=args.batch_size,
+                                           shuffle=True)
 
 
 def train():
-    print(f"Train numbers:{len(test_datasets)}")
+    print(f"Train numbers:{len(train_datasets)}")
 
     # Load model
     if torch.cuda.is_available():
@@ -72,14 +72,14 @@ def train():
     # cast
     cast = nn.CrossEntropyLoss().to(device)
     # Optimization
-    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-8)
 
     model.train()
     for epoch in range(1, args.epochs + 1):
         model.train()
         # start time
         start = time.time()
-        for images, labels in test_loader:
+        for images, labels in train_loader:
             images = images.to(device)
             labels = labels.to(device)
 
@@ -98,24 +98,24 @@ def train():
                   f"Loss: {loss.item():.8f}, "
                   f"Time: {(end-start) * args.display_epoch:.1f}sec!")
 
-            model.eval()
-
-            correct_prediction = 0.
-            total = 0
-            for images, labels in test_loader:
-                # to GPU
-                images = images.to(device)
-                labels = labels.to(device)
-                # print prediction
-                outputs = model(images)
-                # equal prediction and acc
-                _, predicted = torch.max(outputs.data, 1)
-                # val_loader total
-                total += labels.size(0)
-                # add correct
-                correct_prediction += (predicted == labels).sum().item()
-
-            print(f"Acc: {(correct_prediction / total):4f}")
+            # model.eval()
+            #
+            # correct_prediction = 0.
+            # total = 0
+            # for images, labels in train_loader:
+            #     # to GPU
+            #     images = images.to(device)
+            #     labels = labels.to(device)
+            #     # print prediction
+            #     outputs = model(images)
+            #     # equal prediction and acc
+            #     _, predicted = torch.max(outputs.data, 1)
+            #     # val_loader total
+            #     total += labels.size(0)
+            #     # add correct
+            #     correct_prediction += (predicted == labels).sum().item()
+            #
+            # print(f"Acc: {(correct_prediction / total):4f}")
 
     # Save the model checkpoint
     torch.save(model, args.model_path + args.model_name)

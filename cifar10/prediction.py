@@ -20,7 +20,7 @@ parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/cifar10/',
                     help="""image dir path default: '../data/cifar10/'.""")
 parser.add_argument('--batch_size', type=int, default=256,
-                    help="""Batch_size default:256.""")
+                    help="""Batch_size default:100.""")
 parser.add_argument('--num_classes', type=int, default=10,
                     help="""num classes""")
 parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
