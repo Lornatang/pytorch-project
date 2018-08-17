@@ -79,7 +79,7 @@ def train():
     #     model = torch.load(args.model_path + args.model_name).to(device)
     # else:
     #     model = torch.load(args.model_path + args.model_name, map_location='cpu')
-    model = torchvision.models.resnet18(predicted=True).to(device)
+    model = torchvision.models.resnet18(pretrained=True).to(device)
     model.avgpool = nn.AvgPool2d(1, 1)
     model.fc = nn.Linear(512, args.num_classes)
     print(model)
