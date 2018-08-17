@@ -51,7 +51,7 @@ if not os.path.exists(args.model_path):
     os.makedirs(args.model_path)
 
 transform = transforms.Compose([
-    # transforms.Resize(32),  # 将图像转化为32 * 32
+    transforms.Resize(32),  # 将图像转化为32 * 32
     transforms.RandomHorizontalFlip(p=0.75),  # 有0.75的几率随机旋转
     transforms.RandomCrop(24),  # 从图像中裁剪一个24 * 24的
     transforms.ColorJitter(brightness=1, contrast=2, saturation=3, hue=0),  # 给图像增加一些随机的光照
@@ -89,15 +89,14 @@ def train():
     # else:
     #     model = torch.load(args.model_path + args.model_name, map_location='cpu')
     model = torchvision.models.resnet18(pretrained=True).to(device)
-    model.avgpool = nn.AvgPool2d(1, 1)
-    model.fc = nn.Linear(512, args.num_classes)
+    model.avgpool = nn.AvgPool2d(1, 1).to(device)
+    model.fc = nn.Linear(512, args.num_classes).to(device)
     print(model)
     # cast
     cast = nn.CrossEntropyLoss().to(device)
     # Optimization
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
-    model.train()
     for epoch in range(1, args.epochs + 1):
         model.train()
         # start time
