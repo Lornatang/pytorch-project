@@ -38,14 +38,14 @@ transform = transforms.Compose([
     transforms.Resize(32),  # 将图像转化为128 * 128
     transforms.RandomCrop(24),  # 从图像中裁剪一个114 * 114的
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),  # 归一化
+    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),  # 归一化
 ])
 
 # Load data
-test_datasets = torchvision.datasets.CIFAR10(root=args.path,
-                                             download=True,
-                                             transform=transform,
-                                             train=False)
+test_datasets = torchvision.datasets.CIFAR100(root=args.path,
+                                              download=True,
+                                              transform=transform,
+                                              train=False)
 
 
 test_loader = torch.utils.data.DataLoader(dataset=test_datasets,

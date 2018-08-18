@@ -8,8 +8,8 @@
 
 import argparse
 import os
-import time
 
+import time
 import torch
 import torchvision
 from torch import nn, optim
@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/cifar100/',
                     help="""image dir path default: '../data/cifar100/'.""")
 parser.add_argument('--epochs', type=int, default=50,
-                    help="""Epoch default:10.""")
+                    help="""Epoch default:50.""")
 parser.add_argument('--batch_size', type=int, default=256,
                     help="""Batch_size default:256.""")
 parser.add_argument('--lr', type=float, default=0.00001,
