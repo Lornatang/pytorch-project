@@ -19,6 +19,8 @@ from torchvision.utils import save_image
 if not os.path.exists('../data/mnist/dc_img'):
     os.mkdir('../data/mnist/dc_img')
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 def to_img(x):
     out = 0.5 * (x + 1)
@@ -111,10 +113,10 @@ class Generator(nn.Module):
         return x
 
 
-D = Discriminator().cuda()  # discriminator model
-G = Generator(z_dimension, 3136).cuda()  # generator model
+D = Discriminator().to(device)  # discriminator model
+G = Generator(z_dimension, 3136).to(device)  # generator model
 
-criterion = nn.BCELoss()  # binary cross entropy
+criterion = nn.BCELoss().to(device)  # binary cross entropy
 
 d_optimizer = torch.optim.Adam(D.parameters(), lr=0.0003)
 g_optimizer = torch.optim.Adam(G.parameters(), lr=0.0003)
@@ -125,8 +127,8 @@ for epoch in range(num_epoch):
         num_img = img.size(0)
         # =================train discriminator
         real_img = Variable(img).cuda()
-        real_label = Variable(torch.ones(num_img)).cuda()
-        fake_label = Variable(torch.zeros(num_img)).cuda()
+        real_label = torch.ones(num_img).to(device)
+        fake_label = torch.zeros(num_img).to(device)
 
         # compute loss of real_img
         real_out = D(real_img)
@@ -134,7 +136,7 @@ for epoch in range(num_epoch):
         real_scores = real_out  # closer to 1 means better
 
         # compute loss of fake_img
-        z = Variable(torch.randn(num_img, z_dimension)).cuda()
+        z = torch.randn(num_img, z_dimension).to(device)
         fake_img = G(z)
         fake_out = D(fake_img)
         d_loss_fake = criterion(fake_out, fake_label)
@@ -148,7 +150,7 @@ for epoch in range(num_epoch):
 
         # ===============train generator
         # compute loss of fake_img
-        z = Variable(torch.randn(num_img, z_dimension)).cuda()
+        z = torch.randn(num_img, z_dimension).to(device)
         fake_img = G(z)
         output = D(fake_img)
         g_loss = criterion(output, real_label)
@@ -164,10 +166,10 @@ for epoch in range(num_epoch):
                   .format(epoch, num_epoch, d_loss.data[0], g_loss.data[0],
                           real_scores.data.mean(), fake_scores.data.mean()))
         if epoch == 0:
-            real_images = to_img(real_img.cpu().data)
+            real_images = to_img(real_img.data)
             save_image(real_images, './dc_img/real_images.png')
 
-        fake_images = to_img(fake_img.cpu().data)
+        fake_images = to_img(fake_img.data)
         save_image(fake_images, './dc_img/fake_images-{}.png'.format(epoch + 1))
 
 torch.save(G.state_dict(), './generator.pth')
