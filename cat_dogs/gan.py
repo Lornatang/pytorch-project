@@ -64,14 +64,14 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(True),
             nn.MaxPool2d(2, 2)  # batch, 64, 7, 7
         )
-        self.conv3 = nn.Sequential(
+        self.conv4 = nn.Sequential(
             nn.Conv2d(128, 128, 3, 1, 0),  # batch, 64, 14, 14
             nn.LeakyReLU(True),
             nn.MaxPool2d(2, 2)  # batch, 64, 7, 7
         )
         self.fc = nn.Sequential(
-            nn.Linear(128 * 7 * 7, 1024),
-            nn.LeakyReLU(0.2, True),
+            nn.Linear(7680, 1024),
+            nn.LeakyReLU(True),
             nn.Linear(1024, 1)
         )
 
@@ -107,7 +107,12 @@ class Generator(nn.Module):
             nn.ReLU(True)
         )
         self.downsample3 = nn.Sequential(
-            nn.Conv2d(25, 1, 3, 1, 0),  # batch, 1, 28, 28
+            nn.Conv2d(25, 10, 3, 1, 0),  # batch, 1, 28, 28
+            nn.BatchNorm2d(10),
+            nn.ReLU(True)
+        )
+        self.downsample4 = nn.Sequential(
+            nn.Conv2d(10, 1, 3, 1, 0),
             nn.Tanh()
         )
 
@@ -118,11 +123,12 @@ class Generator(nn.Module):
         x = self.downsample1(x)
         x = self.downsample2(x)
         x = self.downsample3(x)
+        x = self.downsample4(x)
         return x
 
 
 D = Discriminator().to(device)  # discriminator model
-G = Generator(z_dimension, 65536).to(device)  # generator model
+G = Generator(z_dimension, 256 * 256).to(device)  # generator model
 
 criterion = nn.BCEWithLogitsLoss().to(device)  # binary cross entropy
 
