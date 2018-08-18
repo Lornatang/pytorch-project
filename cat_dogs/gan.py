@@ -10,7 +10,6 @@ import os
 
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision import transforms
@@ -41,8 +40,7 @@ transform = transforms.Compose([
 
 train_dataset = datasets.MNIST('../data/mnist',
                                transform=transform,
-                               download=True,
-                               train=True)
+                               download=True)
 data_loader = DataLoader(train_dataset,
                          batch_size=batch_size,
                          shuffle=True,
@@ -121,56 +119,59 @@ criterion = nn.BCELoss().to(device)  # binary cross entropy
 d_optimizer = torch.optim.Adam(D.parameters(), lr=0.0003)
 g_optimizer = torch.optim.Adam(G.parameters(), lr=0.0003)
 
-# train
-for epoch in range(num_epoch):
-    for i, (img, _) in enumerate(data_loader):
-        num_img = img.size(0)
-        # =================train discriminator
-        real_img = Variable(img).cuda()
-        real_label = torch.ones(num_img).to(device)
-        fake_label = torch.zeros(num_img).to(device)
 
-        # compute loss of real_img
-        real_out = D(real_img)
-        d_loss_real = criterion(real_out, real_label)
-        real_scores = real_out  # closer to 1 means better
+def train():
+    for epoch in range(num_epoch):
+        for i, (img, _) in enumerate(data_loader):
+            num_img = img.size(0)
+            # =================train discriminator
+            real_img = img.to(device)
+            real_label = torch.ones(num_img).to(device)
+            fake_label = torch.zeros(num_img).to(device)
 
-        # compute loss of fake_img
-        z = torch.randn(num_img, z_dimension).to(device)
-        fake_img = G(z)
-        fake_out = D(fake_img)
-        d_loss_fake = criterion(fake_out, fake_label)
-        fake_scores = fake_out  # closer to 0 means better
+            # compute loss of real_img
+            real_out = D(real_img)
+            d_loss_real = criterion(real_out, real_label)
+            real_scores = real_out  # closer to 1 means better
 
-        # bp and optimize
-        d_loss = d_loss_real + d_loss_fake
-        d_optimizer.zero_grad()
-        d_loss.backward()
-        d_optimizer.step()
+            # compute loss of fake_img
+            z = torch.randn(num_img, z_dimension).to(device)
+            fake_img = G(z)
+            fake_out = D(fake_img)
+            d_loss_fake = criterion(fake_out, fake_label)
+            fake_scores = fake_out  # closer to 0 means better
 
-        # ===============train generator
-        # compute loss of fake_img
-        z = torch.randn(num_img, z_dimension).to(device)
-        fake_img = G(z)
-        output = D(fake_img)
-        g_loss = criterion(output, real_label)
+            # bp and optimize
+            d_loss = d_loss_real + d_loss_fake
+            d_optimizer.zero_grad()
+            d_loss.backward()
+            d_optimizer.step()
 
-        # bp and optimize
-        g_optimizer.zero_grad()
-        g_loss.backward()
-        g_optimizer.step()
+            # ===============train generator
+            # compute loss of fake_img
+            z = torch.randn(num_img, z_dimension).to(device)
+            fake_img = G(z)
+            output = D(fake_img)
+            g_loss = criterion(output, real_label)
 
-        if (i + 1) % 100 == 0:
-            print('Epoch [{}/{}], d_loss: {:.6f}, g_loss: {:.6f} '
-                  'D real: {:.6f}, D fake: {:.6f}'
-                  .format(epoch, num_epoch, d_loss.data[0], g_loss.data[0],
-                          real_scores.data.mean(), fake_scores.data.mean()))
-        if epoch == 0:
-            real_images = to_img(real_img.data)
-            save_image(real_images, './dc_img/real_images.png')
+            # bp and optimize
+            g_optimizer.zero_grad()
+            g_loss.backward()
+            g_optimizer.step()
 
-        fake_images = to_img(fake_img.data)
-        save_image(fake_images, './dc_img/fake_images-{}.png'.format(epoch + 1))
+            if (i + 1) % 100 == 0:
+                print('Epoch [{}/{}], d_loss: {:.6f}, g_loss: {:.6f} '
+                      'D real: {:.6f}, D fake: {:.6f}'
+                      .format(epoch, num_epoch, d_loss.data[0], g_loss.data[0],
+                              real_scores.data.mean(), fake_scores.data.mean()))
+            if epoch == 0:
+                real_images = to_img(real_img.data)
+                save_image(real_images, '../data/mnist/dc_img/real_images.jpg')
 
-torch.save(G.state_dict(), './generator.pth')
-torch.save(D.state_dict(), './discriminator.pth')
+            fake_images = to_img(fake_img.data)
+            save_image(fake_images, '../data/mnist/dc_img/fake_images-{}.jpg'.format(epoch + 1))
+
+
+
+if __name__ == '__main__':
+    train()
