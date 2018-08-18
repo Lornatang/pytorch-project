@@ -9,59 +9,56 @@
 import argparse
 import os
 
+import cv2
 import torch
 import torch.nn as nn
 import torchvision
 from torchvision import transforms
 from torchvision.utils import save_image
 
-import cv2
-
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
 # Hyper-parmeters
 parser = argparse.ArgumentParser()
-parser.add_argument('--dir', type=str, default='../../data',
-                    help="""image path. Default '../data'.""")
-parser.add_argument('--sample_dir', type=str, default='samples',
-                    help="""Create a directory if not exists. Default 'samples""")
+parser.add_argument('--path_dir', type=str, default='../../data/catdog/',
+                    help="""image path. Default '../data/catdog/'.""")
+parser.add_argument('--external_dir', type=str, default='external',
+                    help="""Create a directory if not exists. Default 'external'.""")
 parser.add_argument('--latent_size', type=int, default=64,
                     help="""Latent size. Default 64.""")
 parser.add_argument('--hidden_size', type=int, default=256,
                     help="""Hidden size. Default 256.""")
-parser.add_argument('--image_size', type=int, default=784,
-                    help="""Image size. Default 784.""")
-parser.add_argument('--num_epochs', type=int, default=200,
-                    help="""num epochs. Default 200.""")
-parser.add_argument('--batch_size', type=int, default=300,
-                    help="""batch size. Default 300.""")
+parser.add_argument('--image_size', type=int, default=128 * 128 * 3,
+                    help="""Image size. Default 128 * 128 * 3.""")
+parser.add_argument('--num_epochs', type=int, default=10,
+                    help="""num epochs. Default 10.""")
+parser.add_argument('--batch_size', type=int, default=256,
+                    help="""batch size. Default 256.""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default 0.0001.""")
 args = parser.parse_args()
 
 
 # Create a dir if not exists
-if not os.path.exists(args.sample_dir):
-    os.makedirs(args.sample_dir)
+if not os.path.exists(args.external_dir):
+    os.makedirs(args.external_dir)
 
 # Img processing
 transform = transforms.Compose([
+    transforms.Resize(128),
+    transforms.RandomCrop(114),
     transforms.ToTensor(),
-    transforms.Normalize(mean=(0.5, 0.5, 0.5),
-                         std=(0.5, 0.5, 0.5))])
+    transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
 
 # MNIST dataset
-mnist = torchvision.datasets.MNIST(root=args.dir,
-                                   train=True,
-                                   transform=transform,
-                                   download=True)
+train_dataset = torchvision.datasets.ImageFolder(root=args.path_dir,
+                                                 transform=transform)
 
 # Data loader
-data_loader = torch.utils.data.DataLoader(dataset=mnist,
-                                          batch_size=args.batch_size,
-                                          shuffle=True)
+train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                           batch_size=args.batch_size,
+                                           shuffle=True)
 
 # Discriminator
 D = nn.Sequential(
@@ -87,7 +84,7 @@ D = D.to(device)
 G = G.to(device)
 
 # Binary cross entropy loss and optimizer
-correct_prediction = nn.BCEWithLogitsLoss()
+correct_prediction = nn.BCEWithLogitsLoss().to(device)
 d_optimizer = torch.optim.Adam(D.parameters(), lr=args.lr, weight_decay=1e-8)
 g_optimizer = torch.optim.Adam(G.parameters(), lr=args.lr, weight_decay=1e-8)
 
@@ -103,9 +100,8 @@ def reset_grad():
 
 
 # Start training
-total_step = len(data_loader)
-for epoch in range(args.num_epochs):
-    for i, (images, _) in enumerate(data_loader):
+for epoch in range(1, args.num_epochs+1):
+    for i, (images, _) in enumerate(train_dataset):
         images = images.reshape(args.batch_size, -1).to(device)
 
         # Create the labels which are later used as input for the BCE loss
@@ -160,9 +156,9 @@ for epoch in range(args.num_epochs):
 
     # Save real images
     if (epoch + 1) == 1:
-        images = cv2.reshape(images.size(0), 1, 28, 28)
-        save_image(denorm(images), os.path.join(args.sample_dir, 'real_images.png'))
+        images = cv2.reshape(images.size(0), 3, 128, 128)
+        save_image(denorm(images), os.path.join(args.sample_dir, 'real_images.jpg'))
 
     # Save sampled images
-    fake_images = fake_images.reshape(fake_images.size(0), 1, 28, 28)
-    save_image(denorm(fake_images), os.path.join(args.sample_dir, 'fake_images-{}.png'.format(epoch + 1)))
+    fake_images = fake_images.reshape(fake_images.size(0), 3, 128, 128)
+    save_image(denorm(fake_images), os.path.join(args.sample_dir, 'fake_images-{}.jpg'.format(epoch + 1)))
