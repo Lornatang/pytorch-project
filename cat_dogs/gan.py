@@ -15,8 +15,8 @@ from torchvision import datasets
 from torchvision import transforms
 from torchvision.utils import save_image
 
-if not os.path.exists('../data/mnist/dc_img'):
-    os.mkdir('../data/mnist/dc_img')
+if not os.path.exists('../data/catdog/external'):
+    os.mkdir('../data/catdog/external')
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -28,19 +28,18 @@ def to_img(x):
     return out
 
 
-batch_size = 128
+batch_size = 1
 num_epoch = 100
 z_dimension = 100  # noise dimension
 
 transform = transforms.Compose([
-    transforms.Resize(28),
+    transforms.Resize(128),
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
-train_dataset = datasets.MNIST('../data/mnist',
-                               transform=transform,
-                               download=True)
+train_dataset = datasets.ImageFolder('../data/catdog/val',
+                                     transform=transform)
 data_loader = DataLoader(train_dataset,
                          batch_size=batch_size,
                          shuffle=True,
@@ -51,31 +50,42 @@ class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
         self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 32, 5, padding=2),  # batch, 32, 28, 28
-            nn.LeakyReLU(0.2, True),
-            nn.AvgPool2d(2, stride=2),  # batch, 32, 14, 14
+            nn.Conv2d(3, 32, 3, 1, 0),  # batch, 32, 28, 28
+            nn.LeakyReLU(True),
+            nn.MaxPool2d(2, 2),  # batch, 32, 14, 14
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(32, 64, 5, padding=2),  # batch, 64, 14, 14
-            nn.LeakyReLU(0.2, True),
-            nn.AvgPool2d(2, stride=2)  # batch, 64, 7, 7
+            nn.Conv2d(32, 64, 3, 1, 0),  # batch, 64, 14, 14
+            nn.LeakyReLU(True),
+            nn.MaxPool2d(2, 2)  # batch, 64, 7, 7
+        )
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(64, 128, 3, 1, 0),  # batch, 64, 14, 14
+            nn.LeakyReLU(True),
+            nn.MaxPool2d(2, 2)  # batch, 64, 7, 7
+        )
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(128, 128, 3, 1, 0),  # batch, 64, 14, 14
+            nn.LeakyReLU(True),
+            nn.MaxPool2d(2, 2)  # batch, 64, 7, 7
         )
         self.fc = nn.Sequential(
-            nn.Linear(64 * 7 * 7, 1024),
+            nn.Linear(128 * 7 * 7, 1024),
             nn.LeakyReLU(0.2, True),
-            nn.Linear(1024, 1),
-            nn.Sigmoid()
+            nn.Linear(1024, 1)
         )
 
     def forward(self, x):
         """
         x: batch, width, height, channel=1
         """
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
-        return x
+        out = self.conv1(x)
+        out = self.conv2(out)
+        out = self.conv3(out)
+        out = self.conv4(out)
+        out = out.view(out.size(0), -1)
+        out = self.fc(out)
+        return out
 
 
 class Generator(nn.Module):
@@ -87,23 +97,23 @@ class Generator(nn.Module):
             nn.ReLU(True)
         )
         self.downsample1 = nn.Sequential(
-            nn.Conv2d(1, 50, 3, stride=1, padding=1),  # batch, 50, 56, 56
+            nn.Conv2d(3, 50, 3, 1, 0),  # batch, 50, 56, 56
             nn.BatchNorm2d(50),
             nn.ReLU(True)
         )
         self.downsample2 = nn.Sequential(
-            nn.Conv2d(50, 25, 3, stride=1, padding=1),  # batch, 25, 56, 56
+            nn.Conv2d(50, 25, 3, 1, 0),  # batch, 25, 56, 56
             nn.BatchNorm2d(25),
             nn.ReLU(True)
         )
         self.downsample3 = nn.Sequential(
-            nn.Conv2d(25, 1, 2, stride=2),  # batch, 1, 28, 28
+            nn.Conv2d(25, 1, 3, 1, 0),  # batch, 1, 28, 28
             nn.Tanh()
         )
 
     def forward(self, x):
         x = self.fc(x)
-        x = x.view(x.size(0), 1, 56, 56)
+        x = x.view(x.size(0), 3, 128, 128)
         x = self.br(x)
         x = self.downsample1(x)
         x = self.downsample2(x)
@@ -112,9 +122,9 @@ class Generator(nn.Module):
 
 
 D = Discriminator().to(device)  # discriminator model
-G = Generator(z_dimension, 3136).to(device)  # generator model
+G = Generator(z_dimension, 65536).to(device)  # generator model
 
-criterion = nn.BCELoss().to(device)  # binary cross entropy
+criterion = nn.BCEWithLogitsLoss().to(device)  # binary cross entropy
 
 d_optimizer = torch.optim.Adam(D.parameters(), lr=0.0003)
 g_optimizer = torch.optim.Adam(G.parameters(), lr=0.0003)
@@ -123,7 +133,7 @@ g_optimizer = torch.optim.Adam(G.parameters(), lr=0.0003)
 def train():
     for epoch in range(num_epoch):
         for i, (img, _) in enumerate(data_loader):
-            num_img = img.size(0)
+            num_img = 128
             # =================train discriminator
             real_img = img.to(device)
             real_label = torch.ones(num_img).to(device)
@@ -159,17 +169,13 @@ def train():
             g_loss.backward()
             g_optimizer.step()
 
-            if (i + 1) % 100 == 0:
-                print('Epoch [{}/{}], d_loss: {:.6f}, g_loss: {:.6f} '
-                      'D real: {:.6f}, D fake: {:.6f}'
-                      .format(epoch, num_epoch, d_loss.data[0], g_loss.data[0],
-                              real_scores.data.mean(), fake_scores.data.mean()))
-            if epoch == 0:
-                real_images = to_img(real_img.data)
-                save_image(real_images, '../data/mnist/dc_img/real_images.jpg')
+
+            print('Epoch [{}/{}], d_loss: {:.6f}, g_loss: {:.6f} D real: {:.6f}, D fake: {:.6f}'.format(epoch, num_epoch, d_loss.item(), g_loss.item(),real_scores.data.mean(), fake_scores.data.mean()))
+            real_images = to_img(real_img.data)
+            save_image(real_images, '../data/catdog/external/real_images.jpg')
 
             fake_images = to_img(fake_img.data)
-            save_image(fake_images, '../data/mnist/dc_img/fake_images-{}.jpg'.format(epoch + 1))
+            save_image(fake_images, '../data/catdog/external/fake_images-{}.jpg'.format(epoch + 1))
 
 
 if __name__ == '__main__':
