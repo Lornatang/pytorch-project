@@ -25,8 +25,8 @@ parser.add_argument('--epochs', type=int, default=10,
                     help="""Epoch default:10.""")
 parser.add_argument('--batch_size', type=int, default=256,
                     help="""Batch_size default:256.""")
-parser.add_argument('--lr', type=float, default=0.0001,
-                    help="""learing_rate. Default=0.0001""")
+parser.add_argument('--lr', type=float, default=0.00001,
+                    help="""learing_rate. Default=0.00001""")
 parser.add_argument('--num_classes', type=int, default=100,
                     help="""num classes""")
 parser.add_argument('--model_path', type=str, default='../../models/pytorch/',
@@ -43,11 +43,11 @@ if not os.path.exists(args.model_path):
 
 transform = transforms.Compose([
     transforms.Resize(32),  # 将图像转化为32 * 32
-    transforms.RandomHorizontalFlip(p=0.75),  # 有0.75的几率随机旋转
+    transforms.RandomHorizontalFlip(0.75),  # 有0.75的几率随机旋转
     transforms.RandomCrop(24),  # 从图像中裁剪一个24 * 24的
-    transforms.ColorJitter(brightness=1, contrast=2, saturation=3, hue=0),  # 给图像增加一些随机的光照
+    # transforms.ColorJitter(brightness=1, contrast=2, saturation=3, hue=0),  # 给图像增加一些随机的光照
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # 归一化
+    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])  # 归一化
 ])
 
 
@@ -83,13 +83,13 @@ def train():
     # cast
     cast = nn.MultiMarginLoss().to(device)
     # Optimization
-    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-8)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-5)
 
     for epoch in range(1, args.epochs + 1):
         model.train()
         # start time
         start = time.time()
-        for images, labels in train_loader:
+        for images, labels in test_loader:
             images = images.to(device)
             labels = labels.to(device)
 
