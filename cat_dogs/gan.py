@@ -33,7 +33,7 @@ num_epoch = 100
 z_dimension = 100  # noise dimension
 
 transform = transforms.Compose([
-    transforms.Resize(32),
+    transforms.Resize(28),
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
@@ -170,7 +170,6 @@ def train():
 
             fake_images = to_img(fake_img.data)
             save_image(fake_images, '../data/mnist/dc_img/fake_images-{}.jpg'.format(epoch + 1))
-
 
 
 if __name__ == '__main__':
