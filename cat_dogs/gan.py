@@ -21,16 +21,16 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Hyper-parmeters
 parser = argparse.ArgumentParser()
-parser.add_argument('--path_dir', type=str, default='../../data/catdog/',
-                    help="""image path. Default '../data/catdog/'.""")
-parser.add_argument('--external_dir', type=str, default='external',
-                    help="""Create a directory if not exists. Default 'external'.""")
-parser.add_argument('--latent_size', type=int, default=64,
-                    help="""Latent size. Default 64.""")
+parser.add_argument('--path_dir', type=str, default='../data/catdog/train/',
+                    help="""image path. Default '../data/catdog/train'.""")
+parser.add_argument('--external_dir', type=str, default='../data/catdog/external',
+                    help="""Create a directory if not exists. Default '../data/catdog/external'.""")
+parser.add_argument('--latent_size', type=int, default=100,
+                    help="""Latent size. Default 100.""")
 parser.add_argument('--hidden_size', type=int, default=256,
                     help="""Hidden size. Default 256.""")
-parser.add_argument('--image_size', type=int, default=128 * 128 * 3,
-                    help="""Image size. Default 128 * 128 * 3.""")
+parser.add_argument('--image_size', type=int, default=128 * 128,
+                    help="""Image size. Default 128 * 128.""")
 parser.add_argument('--num_epochs', type=int, default=10,
                     help="""num epochs. Default 10.""")
 parser.add_argument('--batch_size', type=int, default=256,
@@ -47,7 +47,7 @@ if not os.path.exists(args.external_dir):
 # Img processing
 transform = transforms.Compose([
     transforms.Resize(128),
-    transforms.RandomCrop(114),
+    # transforms.RandomCrop(114),
     transforms.ToTensor(),
     transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
 
@@ -66,15 +66,16 @@ D = nn.Sequential(
     nn.LeakyReLU(0.2),
     nn.Linear(args.hidden_size, args.hidden_size),
     nn.LeakyReLU(0.2),
-    nn.Linear(args.hidden_size, 1)
+    nn.Linear(args.hidden_size, 1),
+    nn.Sigmoid()
 )
 
 # Generator
 G = nn.Sequential(
     nn.Linear(args.latent_size, args.hidden_size),
-    nn.ReLU(),
+    nn.ReLU(True),
     nn.Linear(args.hidden_size, args.hidden_size),
-    nn.ReLU(),
+    nn.ReLU(True),
     nn.Linear(args.hidden_size, args.image_size),
     nn.Tanh()
 )
@@ -84,7 +85,7 @@ D = D.to(device)
 G = G.to(device)
 
 # Binary cross entropy loss and optimizer
-correct_prediction = nn.BCEWithLogitsLoss().to(device)
+correct_prediction = nn.BCELoss().to(device)
 d_optimizer = torch.optim.Adam(D.parameters(), lr=args.lr, weight_decay=1e-8)
 g_optimizer = torch.optim.Adam(G.parameters(), lr=args.lr, weight_decay=1e-8)
 
@@ -102,7 +103,7 @@ def reset_grad():
 # Start training
 for epoch in range(1, args.num_epochs+1):
     for i, (images, _) in enumerate(train_dataset):
-        images = images.reshape(args.batch_size, -1).to(device)
+        images = images.reshape(images.size(0), -1).to(device)
 
         # Create the labels which are later used as input for the BCE loss
         real_labels = torch.ones(args.batch_size, 1).to(device)
