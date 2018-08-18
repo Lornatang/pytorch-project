@@ -12,7 +12,6 @@ import time
 
 import torch
 from torch import nn
-from torch.autograd import Variable
 from torchvision import datasets
 from torchvision import transforms
 
@@ -30,7 +29,7 @@ parser.add_argument('--batch_size', type=int, default=100,
                     help="""batch size. Default=128""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
-parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
+parser.add_argument('--model_path', type=str, default='../../models/pytorch/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='mnist.pth',
                     help="""Model name""")

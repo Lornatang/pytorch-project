@@ -8,8 +8,8 @@
 
 import argparse
 import os
-
 import time
+
 import torch
 import torchvision
 from torch import nn, optim
@@ -29,7 +29,7 @@ parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
 parser.add_argument('--num_classes', type=int, default=2,
                     help="""num classes""")
-parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
+parser.add_argument('--model_path', type=str, default='../../models/pytorch/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='catdog.pth',
                     help="""Model name.""")

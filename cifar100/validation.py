@@ -21,7 +21,7 @@ parser.add_argument('--path', type=str, default='../data/cifar100/',
                     help="""image dir path default: '../data/cifar100/'.""")
 parser.add_argument('--batch_size', type=int, default=1,
                     help="""Batch_size default:1.""")
-parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
+parser.add_argument('--model_path', type=str, default='../../models/pytorch/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='cifar100.pth',
                     help="""Model name.""")

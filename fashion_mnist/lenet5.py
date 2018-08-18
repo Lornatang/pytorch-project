@@ -8,8 +8,8 @@
 
 import argparse
 import os
-
 import time
+
 import torch
 import torchvision
 from torch import nn as nn
@@ -30,9 +30,9 @@ parser.add_argument('--batch_size', type=int, default=100,
                     help="""batch size. Default=100""")
 parser.add_argument('--lr', type=float, default=0.001,
                     help="""learing_rate. Default=0.001""")
-parser.add_argument('--model_path', type=str, default='../../model/pytorch/mnist/fashion_mnist',
+parser.add_argument('--model_path', type=str, default='../../models/pytorch/',
                     help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='lenet5.pth',
+parser.add_argument('--model_name', type=str, default='fashion_mnist.pth',
                     help="""Model name.""")
 parser.add_argument('--display_epoch', type=int, default=2)
 args = parser.parse_args()

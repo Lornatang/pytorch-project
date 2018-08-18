@@ -23,7 +23,7 @@ parser.add_argument('--batch_size', type=int, default=256,
                     help="""Batch_size default:256.""")
 parser.add_argument('--num_classes', type=int, default=100,
                     help="""num classes""")
-parser.add_argument('--model_path', type=str, default='../../model/pytorch/',
+parser.add_argument('--model_path', type=str, default='../../models/pytorch/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='cifar100.pth',
                     help="""Model name.""")
