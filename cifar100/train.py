@@ -89,7 +89,7 @@ def train():
         model.train()
         # start time
         start = time.time()
-        for images, labels in test_loader:
+        for images, labels in train_loader:
             images = images.to(device)
             labels = labels.to(device)
 
