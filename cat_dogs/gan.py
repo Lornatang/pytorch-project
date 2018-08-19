@@ -9,6 +9,7 @@
 import argparse
 import os
 
+import time
 import torch
 import torch.nn as nn
 import torchvision
@@ -118,6 +119,7 @@ def reset_grad():
 total_step = len(data_loader)
 for epoch in range(1, args.max_epochs + 1):
     for i, (images, _) in enumerate(data_loader):
+        start = time.time()
         images = images.reshape(images.size(0), -1).to(device)
 
         # Create the labels which are later used as input for the BCE loss
@@ -167,12 +169,14 @@ for epoch in range(1, args.max_epochs + 1):
         g_optimizer.step()
 
         if (i + 1) % 20 == 0:
+            end = time.time()
             print(f"Epoch [{epoch}/{args.max_epochs}], "
                   f"Step [{i+1}/{total_step}], "
                   f"D_loss: {d_loss.item():.4f}, "
                   f"G_loss: {g_loss.item():.4f}, "
                   f"D(x): {real_score.mean().item():.2f}, "
-                  f"D(G(z)): {fake_score.mean().item():.2f}")
+                  f"D(G(z)): {fake_score.mean().item():.2f},"
+                  f"Time: {(end-start):.2f}sec")
 
     # Save real images
     if epoch == 1:
