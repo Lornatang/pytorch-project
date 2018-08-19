@@ -20,10 +20,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # Hyper-parameters
 latent_size = 64
 hidden_size = 256
-image_size = 128 * 128 * 3
-num_epochs = 50
-batch_size = 1
-sample_dir = '../data/catdog/external_data/'
+image_size = 28 * 28
+num_epochs = 300
+batch_size = 300
+sample_dir = '../data/mnist/external_data/'
 
 # Create a directory if not exists
 if not os.path.exists(sample_dir):
@@ -36,8 +36,8 @@ transform = transforms.Compose([
                          std=(0.5, 0.5, 0.5))])
 
 # MNIST dataset
-mnist = torchvision.datasets.ImageFolder(root='../data/catdog/train',
-                                         transform=transform)
+mnist = torchvision.datasets.MNIST(root='../data/mnist',
+                                   transform=transform)
 
 # Data loader
 data_loader = torch.utils.data.DataLoader(dataset=mnist,
@@ -84,7 +84,7 @@ def reset_grad():
 
 # Start training
 total_step = len(data_loader)
-for epoch in range(num_epochs):
+for epoch in range(1, num_epochs+1):
     for i, (images, _) in enumerate(data_loader):
         images = images.reshape(images.size(0), -1).to(device)
 
@@ -139,14 +139,9 @@ for epoch in range(num_epochs):
                   .format(epoch, num_epochs, i + 1, total_step, d_loss.item(), g_loss.item(),
                           real_score.mean().item(), fake_score.mean().item()))
 
-    # Save real images
-        if (epoch + 1) == 1:
-            images = images.reshape(images.size(0), 3, 128, 128)
-            save_image(denorm(images), os.path.join(sample_dir, 'real_images.jpg'))
-
         # Save sampled images
-        fake_images = fake_images.reshape(fake_images.size(0), 3, 128, 128)
-        save_image(denorm(fake_images), os.path.join(sample_dir, 'fake_images.{}.jpg'.format(epoch + 1)))
+        fake_images = fake_images.reshape(fake_images.size(0), 1, 28, 28)
+        save_image(denorm(fake_images), os.path.join(sample_dir, 'fake_images.{}.jpg'.format(epoch)))
 
 # Save the model checkpoints
 torch.save(G, 'G.pth')
