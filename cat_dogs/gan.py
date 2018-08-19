@@ -20,9 +20,9 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # Hyper-parameters
 latent_size = 128
 hidden_size = 512
-image_size = 128 * 128 * 3
-num_epochs = 300
-batch_size = 64
+image_size = 32 * 32 * 3
+num_epochs = 500
+batch_size = 200
 sample_dir = '../data/catdog/external_data/'
 
 # Create a directory if not exists
@@ -31,6 +31,7 @@ if not os.path.exists(sample_dir):
 
 # Image processing
 transform = transforms.Compose([
+    transforms.Resize(32),
     transforms.ToTensor(),
     transforms.Normalize(mean=(0.5, 0.5, 0.5),  # 3 for RGB channels
                          std=(0.5, 0.5, 0.5))])
@@ -134,19 +135,20 @@ for epoch in range(1, num_epochs + 1):
         g_loss.backward()
         g_optimizer.step()
 
-        if (i + 1) % 200 == 0:
+        if (i + 1) % 20 == 0:
             print('Epoch [{}/{}], Step [{}/{}], d_loss: {:.4f}, g_loss: {:.4f}, D(x): {:.2f}, D(G(z)): {:.2f}'
                   .format(epoch, num_epochs, i + 1, total_step, d_loss.item(), g_loss.item(),
                           real_score.mean().item(), fake_score.mean().item()))
 
     # Save real images
-    if (epoch + 1) == 1:
-        images = images.reshape(images.size(0), 3, 128, 128)
+    if epoch == 1:
+        images = images.reshape(images.size(0), 3, 32, 32)
         save_image(denorm(images), os.path.join(sample_dir, 'real_images.jpg'))
 
-    # Save sampled images
-    fake_images = fake_images.reshape(fake_images.size(0), 3, 128, 128)
-    save_image(denorm(fake_images), os.path.join(sample_dir, 'fake_images-{}.jpg'.format(epoch + 4000)))
+    if epoch % 5 == 0:
+        # Save sampled images
+        fake_images = fake_images.reshape(fake_images.size(0), 3, 32, 32)
+        save_image(denorm(fake_images), os.path.join(sample_dir, 'cat.{}.jpg'.format(epoch + 4000)))
 
 # Save the model checkpoints
 torch.save(G, 'G.pth')
