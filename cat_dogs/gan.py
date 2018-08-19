@@ -20,9 +20,9 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # Hyper-parameters
 latent_size = 64
 hidden_size = 256
-image_size = 784
-num_epochs = 200
-batch_size = 300
+image_size = 128 * 128 * 3
+num_epochs = 50
+batch_size = 200
 sample_dir = '../data/catdog/external_data/'
 
 # Create a directory if not exists
@@ -31,13 +31,13 @@ if not os.path.exists(sample_dir):
 
 # Image processing
 transform = transforms.Compose([
-    transforms.Resize(32),
+    transforms.Resize(128),
     transforms.ToTensor(),
     transforms.Normalize(mean=(0.5, 0.5, 0.5),  # 3 for RGB channels
                          std=(0.5, 0.5, 0.5))])
 
 # MNIST dataset
-mnist = torchvision.datasets.ImageFolder(root='../data/catdog/train/',
+mnist = torchvision.datasets.ImageFolder(root='../data/catdog/train',
                                          transform=transform)
 
 # Data loader
@@ -61,7 +61,7 @@ G = nn.Sequential(
     nn.Linear(hidden_size, hidden_size),
     nn.ReLU(),
     nn.Linear(hidden_size, image_size),
-    nn.Tanh())
+    nn.ReLU())
 
 # Device setting
 D = D.to(device)
@@ -87,11 +87,11 @@ def reset_grad():
 total_step = len(data_loader)
 for epoch in range(num_epochs):
     for i, (images, _) in enumerate(data_loader):
-        images = images.reshape(batch_size, -1).to(device)
+        images = images.reshape(images.size(0), -1).to(device)
 
         # Create the labels which are later used as input for the BCE loss
-        real_labels = torch.ones(batch_size, 1).to(device)
-        fake_labels = torch.zeros(batch_size, 1).to(device)
+        real_labels = torch.ones(images.size(0), 1).to(device)
+        fake_labels = torch.zeros(images.size(0), 1).to(device)
 
         # ================================================================== #
         #                      Train the discriminator                       #
@@ -105,7 +105,7 @@ for epoch in range(num_epochs):
 
         # Compute BCELoss using fake images
         # First term of the loss is always zero since fake_labels == 0
-        z = torch.randn(batch_size, latent_size).to(device)
+        z = torch.randn(images.size(0), latent_size).to(device)
         fake_images = G(z)
         outputs = D(fake_images)
         d_loss_fake = criterion(outputs, fake_labels)
@@ -122,7 +122,7 @@ for epoch in range(num_epochs):
         # ================================================================== #
 
         # Compute loss with fake images
-        z = torch.randn(batch_size, latent_size).to(device)
+        z = torch.randn(images.size(0), latent_size).to(device)
         fake_images = G(z)
         outputs = D(fake_images)
 
@@ -142,11 +142,11 @@ for epoch in range(num_epochs):
 
     # Save real images
         if (epoch + 1) == 1:
-            images = images.reshape(images.size(0), 1, 28, 28)
+            images = images.reshape(images.size(0), 3, 128, 128)
             save_image(denorm(images), os.path.join(sample_dir, 'real_images.jpg'))
 
         # Save sampled images
-        fake_images = fake_images.reshape(fake_images.size(0), 1, 28, 28)
+        fake_images = fake_images.reshape(fake_images.size(0), 3, 128, 128)
         save_image(denorm(fake_images), os.path.join(sample_dir, 'fake_images.{}.jpg'.format(epoch + 1)))
 
 # Save the model checkpoints
