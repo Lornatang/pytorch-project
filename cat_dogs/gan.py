@@ -33,8 +33,8 @@ parser.add_argument('--batch_size', type=int, default=128,
                     help="""Batch size. Default: 128.""")
 parser.add_argument('--image_size', type=int, default=128 * 128 * 3,
                     help="""Input image size. Default: 128 * 128 * 3.""")
-parser.add_argument('--max_epochs', type=int, default=500,
-                    help="""Max epoch. Default: 500.""")
+parser.add_argument('--max_epochs', type=int, default=100,
+                    help="""Max epoch. Default: 100.""")
 parser.add_argument('--display_epoch', type=int, default=2,
                     help="""When epochs save image. Default: 2.""")
 args = parser.parse_args()
@@ -65,9 +65,9 @@ class Discriminator(nn.Module):
         super(Discriminator, self).__init__()
         self.fc = nn.Sequential(
             nn.Linear(args.image_size, args.hidden_size),
-            nn.ReLU(),
+            nn.ReLU(True),
             nn.Linear(args.hidden_size, args.hidden_size),
-            nn.ReLU(),
+            nn.ReLU(True),
             nn.Linear(args.hidden_size, 1)
         )
 
@@ -83,11 +83,11 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
         self.fc = nn.Sequential(
             nn.Linear(args.latent_size, args.hidden_size),
-            nn.ReLU(),
+            nn.ReLU(True),
             nn.Linear(args.hidden_size, args.hidden_size),
-            nn.ReLU(),
+            nn.ReLU(True),
             nn.Linear(args.hidden_size, args.image_size),
-            nn.ReLU())
+            nn.ReLU(True))
 
     def forward(self, x):
         out = self.fc(x)
@@ -118,8 +118,8 @@ def reset_grad():
 # Start training
 total_step = len(data_loader)
 for epoch in range(1, args.max_epochs + 1):
+    start = time.time()
     for i, (images, _) in enumerate(data_loader):
-        start = time.time()
         images = images.reshape(images.size(0), -1).to(device)
 
         # Create the labels which are later used as input for the BCE loss

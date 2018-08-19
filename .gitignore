@@ -4,3 +4,5 @@ data
 *.pyc
 face_recognition/face.py___jb_tmp___
 .vscode/settings.json
+cat_dogs/D.pth
+cat_dogs/G.pth
