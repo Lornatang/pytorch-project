@@ -31,7 +31,6 @@ if not os.path.exists(sample_dir):
 
 # Image processing
 transform = transforms.Compose([
-    transforms.Resize(128),
     transforms.ToTensor(),
     transforms.Normalize(mean=(0.5, 0.5, 0.5),  # 3 for RGB channels
                          std=(0.5, 0.5, 0.5))])
