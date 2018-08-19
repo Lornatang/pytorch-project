@@ -22,7 +22,7 @@ latent_size = 64
 hidden_size = 256
 image_size = 128 * 128 * 3
 num_epochs = 50
-batch_size = 200
+batch_size = 1
 sample_dir = '../data/catdog/external_data/'
 
 # Create a directory if not exists
