@@ -27,8 +27,8 @@ parser.add_argument('--external_dir', type=str, default='../data/catdog/external
                     help="""input image path dir.Default: '../data/catdog/external_data/'.""")
 parser.add_argument('--latent_size', type=int, default=128,
                     help="""Latent_size. Default: 128.""")
-parser.add_argument('--hidden_size', type=int, default=1024,
-                    help="""Hidden size. Default: 512.""")
+parser.add_argument('--hidden_size', type=int, default=256,
+                    help="""Hidden size. Default: 256.""")
 parser.add_argument('--batch_size', type=int, default=128,
                     help="""Batch size. Default: 128.""")
 parser.add_argument('--image_size', type=int, default=128 * 128 * 3,
@@ -65,9 +65,9 @@ class Discriminator(nn.Module):
         super(Discriminator, self).__init__()
         self.fc = nn.Sequential(
             nn.Linear(args.image_size, args.hidden_size),
-            nn.ReLU(True),
+            nn.ReLU(),
             nn.Linear(args.hidden_size, args.hidden_size),
-            nn.ReLU(True),
+            nn.ReLU(),
             nn.Linear(args.hidden_size, 1)
         )
 
@@ -83,11 +83,11 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
         self.fc = nn.Sequential(
             nn.Linear(args.latent_size, args.hidden_size),
-            nn.ReLU(True),
+            nn.ReLU(),
             nn.Linear(args.hidden_size, args.hidden_size),
-            nn.ReLU(True),
+            nn.ReLU(),
             nn.Linear(args.hidden_size, args.image_size),
-            nn.ReLU(True))
+            nn.ReLU())
 
     def forward(self, x):
         out = self.fc(x)
@@ -101,8 +101,8 @@ G = torch.load('G.pth').to(device)
 
 # Binary cross entropy loss and optimizer
 cast = nn.BCEWithLogitsLoss()
-d_optimizer = torch.optim.Adam(D.parameters(), lr=0.0001)
-g_optimizer = torch.optim.Adam(G.parameters(), lr=0.0001)
+d_optimizer = torch.optim.Adam(D.parameters(), lr=0.0001, weight_decay=1e-8)
+g_optimizer = torch.optim.Adam(G.parameters(), lr=0.0001, weight_decay=1e-8)
 
 
 def denorm(x):
@@ -186,7 +186,9 @@ for epoch in range(1, args.max_epochs + 1):
     if epoch % args.display_epoch == 0:
         # Save sampled images
         fake_images = fake_images.reshape(fake_images.size(0), 3, 128, 128)
-        save_image(denorm(fake_images), os.path.join(args.external_dir, f"cat.{int(epoch / args.display_epoch + 4000)}.jpg"))
+        save_image(denorm(fake_images),
+                   os.path.join(args.external_dir,
+                   f"cat.{int(epoch / args.display_epoch + 4000)}.jpg"))
 
 # Save the model checkpoints
 torch.save(G, 'G.pth')
