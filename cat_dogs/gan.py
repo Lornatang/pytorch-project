@@ -8,8 +8,8 @@
 
 import argparse
 import os
-
 import time
+
 import torch
 import torch.nn as nn
 import torchvision
@@ -33,7 +33,7 @@ parser.add_argument('--batch_size', type=int, default=128,
                     help="""Batch size. Default: 128.""")
 parser.add_argument('--image_size', type=int, default=128 * 128 * 3,
                     help="""Input image size. Default: 128 * 128 * 3.""")
-parser.add_argument('--max_epochs', type=int, default=100,
+parser.add_argument('--max_epochs', type=int, default=500,
                     help="""Max epoch. Default: 500.""")
 parser.add_argument('--display_epoch', type=int, default=2,
                     help="""When epochs save image. Default: 2.""")
@@ -96,8 +96,8 @@ class Generator(nn.Module):
 
 
 # Load model
-D = Discriminator().to(device)
-G = Generator().to(device)
+D = torch.load('D.pth').to(device)
+G = torch.load('G.pth').to(device)
 
 # Binary cross entropy loss and optimizer
 cast = nn.BCEWithLogitsLoss()
@@ -168,7 +168,7 @@ for epoch in range(1, args.max_epochs + 1):
         g_loss.backward()
         g_optimizer.step()
 
-        if (i + 1) % 20 == 0:
+        if (i + 1) % 32 == 0:
             end = time.time()
             print(f"Epoch [{epoch}/{args.max_epochs}], "
                   f"Step [{i+1}/{total_step}], "
@@ -185,8 +185,8 @@ for epoch in range(1, args.max_epochs + 1):
 
     if epoch % args.display_epoch == 0:
         # Save sampled images
-        fake_images = fake_images.reshape(fake_images.size(0), 3, 32, 32)
-        save_image(denorm(fake_images), os.path.join(args.external_dir, 'cat.{}.jpg'.format(epoch + 4000)))
+        fake_images = fake_images.reshape(fake_images.size(0), 3, 128, 128)
+        save_image(denorm(fake_images), os.path.join(args.external_dir, f"cat.{int(epoch / args.display_epoch + 4000)}.jpg"))
 
 # Save the model checkpoints
 torch.save(G, 'G.pth')
