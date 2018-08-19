@@ -18,12 +18,12 @@ from torchvision.utils import save_image
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Hyper-parameters
-latent_size = 64
-hidden_size = 256
-image_size = 28 * 28
+latent_size = 128
+hidden_size = 512
+image_size = 128 * 128 * 3
 num_epochs = 300
-batch_size = 300
-sample_dir = '../data/mnist/external_data/'
+batch_size = 64
+sample_dir = '../data/catdog/external_data/'
 
 # Create a directory if not exists
 if not os.path.exists(sample_dir):
@@ -36,31 +36,31 @@ transform = transforms.Compose([
                          std=(0.5, 0.5, 0.5))])
 
 # MNIST dataset
-mnist = torchvision.datasets.MNIST(root='../data/mnist',
-                                   transform=transform)
+train_dataset = torchvision.datasets.ImageFolder(root='../data/catdog/extera/',
+                                                 transform=transform)
 
 # Data loader
-data_loader = torch.utils.data.DataLoader(dataset=mnist,
+data_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                           batch_size=batch_size,
                                           shuffle=True)
 
 # Discriminator
 D = nn.Sequential(
     nn.Linear(image_size, hidden_size),
-    nn.LeakyReLU(0.2),
+    nn.ReLU(True),
     nn.Linear(hidden_size, hidden_size),
-    nn.LeakyReLU(0.2),
+    nn.ReLU(True),
     nn.Linear(hidden_size, 1),
 )
 
 # Generator
 G = nn.Sequential(
     nn.Linear(latent_size, hidden_size),
-    nn.ReLU(),
+    nn.ReLU(True),
     nn.Linear(hidden_size, hidden_size),
-    nn.ReLU(),
+    nn.ReLU(True),
     nn.Linear(hidden_size, image_size),
-    nn.ReLU())
+    nn.ReLU(True))
 
 # Device setting
 D = D.to(device)
@@ -84,7 +84,7 @@ def reset_grad():
 
 # Start training
 total_step = len(data_loader)
-for epoch in range(1, num_epochs+1):
+for epoch in range(1, num_epochs + 1):
     for i, (images, _) in enumerate(data_loader):
         images = images.reshape(images.size(0), -1).to(device)
 
@@ -139,9 +139,14 @@ for epoch in range(1, num_epochs+1):
                   .format(epoch, num_epochs, i + 1, total_step, d_loss.item(), g_loss.item(),
                           real_score.mean().item(), fake_score.mean().item()))
 
-        # Save sampled images
-        fake_images = fake_images.reshape(fake_images.size(0), 1, 28, 28)
-        save_image(denorm(fake_images), os.path.join(sample_dir, 'fake_images.{}.jpg'.format(epoch)))
+    # Save real images
+    if (epoch + 1) == 1:
+        images = images.reshape(images.size(0), 3, 128, 128)
+        save_image(denorm(images), os.path.join(sample_dir, 'real_images.jpg'))
+
+    # Save sampled images
+    fake_images = fake_images.reshape(fake_images.size(0), 3, 128, 128)
+    save_image(denorm(fake_images), os.path.join(sample_dir, 'fake_images-{}.jpg'.format(epoch + 4000)))
 
 # Save the model checkpoints
 torch.save(G, 'G.pth')
