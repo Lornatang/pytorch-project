@@ -79,8 +79,8 @@ Generator = nn.Sequential(
 )
 
 # Device setting
-D = torch.load(args.model_dir + 'Discriminator.pth', map_location='cpu').to(device)
-G = torch.load(args.model_dir + 'Generator.pth', map_location='cpu').to(device)
+D = Discriminator.to(device)
+G = Generator.to(device)
 
 # Binary cross entropy loss and optimizer
 cast = nn.BCEWithLogitsLoss().to(device)
@@ -161,13 +161,13 @@ for epoch in range(1, args.max_epochs+1):
     # Save real images
     if epoch == 1:
         images = images.reshape(images.size(0), 3, 28, 28)
-        save_image(denorm(images), os.path.join(args.exteranal_data, 'origin.jpg'))
+        save_image(denorm(images), os.path.join(args.external_dir, 'origin.jpg'))
 
     # Save sampled images
     fake_images = fake_images.reshape(fake_images.size(0), 3, 28, 28)
     save_image(denorm(fake_images), os.path.join(
-        args.exteranal_data, f"cat.{4000 + epoch}.jpg"))
+        args.exteranal_dir, f"cat.{4000 + epoch}.jpg"))
 
 # Save the model checkpoints
-# torch.save(G, 'G.ckpt')
-# torch.save(D, 'D.ckpt')
+torch.save(G, 'G.ckpt')
+torch.save(D, 'D.ckpt')
