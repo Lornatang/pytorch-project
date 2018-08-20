@@ -169,5 +169,5 @@ for epoch in range(1, args.max_epochs+1):
         args.exteranal_dir, f"cat.{4000 + epoch}.jpg"))
 
 # Save the model checkpoints
-torch.save(G, 'G.ckpt')
-torch.save(D, 'D.ckpt')
+torch.save(G, 'Generator.pth')
+torch.save(D, 'Discriminator.pth')
