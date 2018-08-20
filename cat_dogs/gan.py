@@ -6,10 +6,8 @@
 # license: MIT
 """
 
-import argparse
 import os
 
-import time
 import torch
 import torch.nn as nn
 import torchvision
@@ -20,89 +18,83 @@ from torchvision.utils import save_image
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Setting hyper-parameters
-parser = argparse.ArgumentParser()
-parser.add_argument('--path_dir', type=str, default='../data/mnist',
-                    help="""input image path dir.Default: '../data/mnist'.""")
-parser.add_argument('--external_dir', type=str, default='../data/mnist/external_data/',
-                    help="""input image path dir.Default: '../data/mnist/external_data/'.""")
-parser.add_argument('--latent_size', type=int, default=128,
-                    help="""Latent_size. Default: 128.""")
-parser.add_argument('--hidden_size', type=int, default=256,
-                    help="""Hidden size. Default: 256.""")
-parser.add_argument('--batch_size', type=int, default=300,
-                    help="""Batch size. Default: 300.""")
-parser.add_argument('--image_size', type=int, default=28 * 28 * 1,
-                    help="""Input image size. Default: 28 * 28 * 3.""")
-parser.add_argument('--max_epochs', type=int, default=100,
-                    help="""Max epoch. Default: 100.""")
-parser.add_argument('--display_epoch', type=int, default=5,
-                    help="""When epochs save image. Default: 5.""")
-args = parser.parse_args()
+# parser = argparse.ArgumentParser()
+# parser.add_argument('--path_dir', type=str, default='../data/mnist',
+#                     help="""input image path dir.Default: '../data/mnist'.""")
+# parser.add_argument('--external_dir', type=str, default='../data/mnist/external_data/',
+#                     help="""input image path dir.Default: '../data/mnist/external_data/'.""")
+# parser.add_argument('--latent_size', type=int, default=128,
+#                     help="""Latent_size. Default: 128.""")
+# parser.add_argument('--hidden_size', type=int, default=1024,
+#                     help="""Hidden size. Default: 1024.""")
+# parser.add_argument('--batch_size', type=int, default=64,
+#                     help="""Batch size. Default: 300.""")
+# parser.add_argument('--image_size', type=int, default=28 * 28 * 1,
+#                     help="""Input image size. Default: 28 * 28 * 3.""")
+# parser.add_argument('--max_epochs', type=int, default=100,
+#                     help="""Max epoch. Default: 100.""")
+# parser.add_argument('--display_epoch', type=int, default=5,
+#                     help="""When epochs save image. Default: 5.""")
+# args = parser.parse_args()
+
+# Device configuration
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# Hyper-parameters
+latent_size = 64
+hidden_size = 256
+image_size = 784
+num_epochs = 200
+batch_size = 100
+sample_dir = '../data/mnist/external_data'
 
 # Create a directory if not exists
-if not os.path.exists(args.path_dir):
-    os.makedirs(args.path_dir)
+if not os.path.exists(sample_dir):
+    os.makedirs(sample_dir)
 
 # Image processing
 transform = transforms.Compose([
-    transforms.Resize(28),
     transforms.ToTensor(),
-    transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])  # 3 for RGB channels
+    transforms.Normalize(mean=(0.5, 0.5, 0.5),  # 3 for RGB channels
+                         std=(0.5, 0.5, 0.5))])
 
 # MNIST dataset
-train_dataset = torchvision.datasets.MNIST(root=args.path_dir,
-                                           transform=transform)
+mnist = torchvision.datasets.MNIST(root='../data/mnist',
+                                   train=True,
+                                   transform=transform,
+                                   download=True)
 
 # Data loader
-data_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-                                          batch_size=args.batch_size,
+data_loader = torch.utils.data.DataLoader(dataset=mnist,
+                                          batch_size=batch_size,
                                           shuffle=True)
 
-
 # Discriminator
-class Discriminator(nn.Module):
-    def __init__(self):
-        super(Discriminator, self).__init__()
-        self.fc = nn.Sequential(
-            nn.Linear(args.image_size, args.hidden_size),
-            nn.ReLU(True),
-            nn.Linear(args.hidden_size, args.hidden_size),
-            nn.ReLU(True),
-            nn.Linear(args.hidden_size, 1)
-        )
-
-    def forward(self, x):
-        out = self.fc(x)
-
-        return out
-
+D = nn.Sequential(
+    nn.Linear(image_size, hidden_size),
+    nn.LeakyReLU(0.2),
+    nn.Linear(hidden_size, hidden_size),
+    nn.LeakyReLU(0.2),
+    nn.Linear(hidden_size, 1),
+    nn.Sigmoid())
 
 # Generator
-class Generator(nn.Module):
-    def __init__(self):
-        super(Generator, self).__init__()
-        self.fc = nn.Sequential(
-            nn.Linear(args.latent_size, args.hidden_size),
-            nn.ReLU(True),
-            nn.Linear(args.hidden_size, args.hidden_size),
-            nn.ReLU(True),
-            nn.Linear(args.hidden_size, args.image_size),
-            nn.ReLU(True))
+G = nn.Sequential(
+    nn.Linear(latent_size, hidden_size),
+    nn.ReLU(),
+    nn.Linear(hidden_size, hidden_size),
+    nn.ReLU(),
+    nn.Linear(hidden_size, image_size),
+    nn.Tanh())
 
-    def forward(self, x):
-        out = self.fc(x)
-
-        return out
-
-
-# Load model
-D = Discriminator().to(device)
-G = Generator().to(device)
+# Device setting
+D = D.to(device)
+G = G.to(device)
 
 # Binary cross entropy loss and optimizer
-cast = nn.BCEWithLogitsLoss()
-d_optimizer = torch.optim.Adam(D.parameters(), lr=0.01, weight_decay=1e-8)
-g_optimizer = torch.optim.Adam(G.parameters(), lr=0.01, weight_decay=1e-8)
+criterion = nn.BCELoss()
+d_optimizer = torch.optim.Adam(D.parameters(), lr=0.0002)
+g_optimizer = torch.optim.Adam(G.parameters(), lr=0.0002)
 
 
 def denorm(x):
@@ -117,14 +109,13 @@ def reset_grad():
 
 # Start training
 total_step = len(data_loader)
-for epoch in range(1, args.max_epochs + 1):
-    start = time.time()
+for epoch in range(num_epochs):
     for i, (images, _) in enumerate(data_loader):
-        images = images.reshape(images.size(0), -1).to(device)
+        images = images.reshape(batch_size, -1).to(device)
 
         # Create the labels which are later used as input for the BCE loss
-        real_labels = torch.ones(images.size(0), 1).to(device)
-        fake_labels = torch.zeros(images.size(0), 1).to(device)
+        real_labels = torch.ones(batch_size, 1).to(device)
+        fake_labels = torch.zeros(batch_size, 1).to(device)
 
         # ================================================================== #
         #                      Train the discriminator                       #
@@ -133,15 +124,15 @@ for epoch in range(1, args.max_epochs + 1):
         # Compute BCE_Loss using real images where BCE_Loss(x, y): - y * log(D(x)) - (1-y) * log(1 - D(x))
         # Second term of the loss is always zero since real_labels == 1
         outputs = D(images)
-        d_loss_real = cast(outputs, real_labels)
+        d_loss_real = criterion(outputs, real_labels)
         real_score = outputs
 
         # Compute BCELoss using fake images
         # First term of the loss is always zero since fake_labels == 0
-        z = torch.randn(images.size(0), args.latent_size).to(device)
+        z = torch.randn(batch_size, latent_size).to(device)
         fake_images = G(z)
         outputs = D(fake_images)
-        d_loss_fake = cast(outputs, fake_labels)
+        d_loss_fake = criterion(outputs, fake_labels)
         fake_score = outputs
 
         # Backprop and optimize
@@ -155,41 +146,33 @@ for epoch in range(1, args.max_epochs + 1):
         # ================================================================== #
 
         # Compute loss with fake images
-        z = torch.randn(images.size(0), args.latent_size).to(device)
+        z = torch.randn(batch_size, latent_size).to(device)
         fake_images = G(z)
         outputs = D(fake_images)
 
         # We train G to maximize log(D(G(z)) instead of minimizing log(1-D(G(z)))
         # For the reason, see the last paragraph of section 3. https://arxiv.org/pdf/1406.2661.pdf
-        g_loss = cast(outputs, real_labels)
+        g_loss = criterion(outputs, real_labels)
 
         # Backprop and optimize
         reset_grad()
         g_loss.backward()
         g_optimizer.step()
 
-        if (i + 1) % 32 == 0:
-            end = time.time()
-            print(f"Epoch [{epoch}/{args.max_epochs}], "
-                  f"Step [{i+1}/{total_step}], "
-                  f"D_loss: {d_loss.item():.4f}, "
-                  f"G_loss: {g_loss.item():.4f}, "
-                  f"D(x): {real_score.mean().item():.2f}, "
-                  f"D(G(z)): {fake_score.mean().item():.2f},"
-                  f"Time: {(end-start):.2f}sec")
+        if (i + 1) % 200 == 0:
+            print('Epoch [{}/{}], Step [{}/{}], d_loss: {:.4f}, g_loss: {:.4f}, D(x): {:.2f}, D(G(z)): {:.2f}'
+                  .format(epoch, num_epochs, i + 1, total_step, d_loss.item(), g_loss.item(),
+                          real_score.mean().item(), fake_score.mean().item()))
 
     # Save real images
-    if epoch == 1:
+    if (epoch + 1) == 1:
         images = images.reshape(images.size(0), 1, 28, 28)
-        save_image(denorm(images), os.path.join(args.external_dir, 'real_images.jpg'))
+        save_image(denorm(images), os.path.join(sample_dir, 'real_images.jpg'))
 
-    if epoch % args.display_epoch == 0:
-        # Save sampled images
-        fake_images = fake_images.reshape(fake_images.size(0), 1, 28, 28)
-        save_image(denorm(fake_images),
-                   os.path.join(args.external_dir,
-                   f"cat.{int(epoch / args.display_epoch + 4000)}.jpg"))
+    # Save sampled images
+    fake_images = fake_images.reshape(fake_images.size(0), 1, 28, 28)
+    save_image(denorm(fake_images), os.path.join(sample_dir, 'fake_images-{}.jpg'.format(epoch + 1)))
 
 # Save the model checkpoints
-torch.save(G, 'G.pth')
-torch.save(D, 'D.pth')
+torch.save(G, 'G.ckpt')
+torch.save(D, 'D.ckpt')
