@@ -7,6 +7,7 @@
 """
 
 import os
+import time
 
 import torch
 import torchvision
@@ -18,45 +19,34 @@ from torchvision.utils import save_image
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Setting hyper-parameters
-# parser = argparse.ArgumentParser()
-# parser.add_argument('--path_dir', type=str, default='../data/mnist',
-#                     help="""input image path dir.Default: '../data/mnist'.""")
-# parser.add_argument('--external_dir', type=str, default='../data/mnist/external_data/',
-#                     help="""input image path dir.Default: '../data/mnist/external_data/'.""")
-# parser.add_argument('--latent_size', type=int, default=128,
-#                     help="""Latent_size. Default: 128.""")
-# parser.add_argument('--hidden_size', type=int, default=1024,
-#                     help="""Hidden size. Default: 1024.""")
-# parser.add_argument('--batch_size', type=int, default=64,
-#                     help="""Batch size. Default: 300.""")
-# parser.add_argument('--image_size', type=int, default=28 * 28 * 1,
-#                     help="""Input image size. Default: 28 * 28 * 3.""")
-# parser.add_argument('--max_epochs', type=int, default=100,
-#                     help="""Max epoch. Default: 100.""")
-# parser.add_argument('--display_epoch', type=int, default=5,
-#                     help="""When epochs save image. Default: 5.""")
-# args = parser.parse_args()
-
-# Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-# Hyper-parameters
-latent_size = 64
-hidden_size = 256
-image_size = 784
-num_epochs = 200
-batch_size = 100
-sample_dir = '../data/mnist/external_data'
+parser = argparse.ArgumentParser()
+parser.add_argument('--path_dir', type=str, default='../data/catdog/',
+                    help="""input image path dir.Default: '../data/catdog/'.""")
+parser.add_argument('--external_dir', type=str, default='../data/catdog/external_data/',
+                    help="""input image path dir.Default: '../data/catdog/external_data/'.""")
+parser.add_argument('--latent_size', type=int, default=64,
+                    help="""Latent_size. Default: 64.""")
+parser.add_argument('--hidden_size', type=int, default=1024,
+                    help="""Hidden size. Default: 1024.""")
+parser.add_argument('--batch_size', type=int, default=64,
+                    help="""Batch size. Default: 64.""")
+parser.add_argument('--image_size', type=int, default=28 * 28 * 3,
+                    help="""Input image size. Default: 28 * 28 * 3.""")
+parser.add_argument('--max_epochs', type=int, default=100,
+                    help="""Max epoch. Default: 100.""")
+parser.add_argument('--display_epoch', type=int, default=5,
+                    help="""When epochs save image. Default: 5.""")
+args = parser.parse_args()
 
 # Create a directory if not exists
-if not os.path.exists(sample_dir):
-    os.makedirs(sample_dir)
+if not os.path.exists(args.external_dir):
+    os.makedirs(args.external_dir)
 
 # Image processing
 transform = transforms.Compose([
+    transforms.Resize(28),
     transforms.ToTensor(),
-    transforms.Normalize(mean=(0.5, 0.5, 0.5),  # 3 for RGB channels
-                         std=(0.5, 0.5, 0.5))])
+    transforms.Normalize(mean=(0.5, 0.5, 0.5),  std=(0.5, 0.5, 0.5))])  # # 3 for RGB channels
 
 # MNIST dataset
 mnist = torchvision.datasets.MNIST(root='../data/mnist',
