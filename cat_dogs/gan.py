@@ -8,8 +8,8 @@
 
 import argparse
 import os
-import time
 
+import time
 import torch
 import torch.nn as nn
 import torchvision
@@ -21,22 +21,22 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Setting hyper-parameters
 parser = argparse.ArgumentParser()
-parser.add_argument('--path_dir', type=str, default='../data/catdog/extera',
-                    help="""input image path dir.Default: '../data/catdog/extera'.""")
-parser.add_argument('--external_dir', type=str, default='../data/catdog/external_data/',
-                    help="""input image path dir.Default: '../data/catdog/external_data/'.""")
+parser.add_argument('--path_dir', type=str, default='../data/mnist',
+                    help="""input image path dir.Default: '../data/mnist'.""")
+parser.add_argument('--external_dir', type=str, default='../data/mnist/external_data/',
+                    help="""input image path dir.Default: '../data/mnist/external_data/'.""")
 parser.add_argument('--latent_size', type=int, default=128,
                     help="""Latent_size. Default: 128.""")
 parser.add_argument('--hidden_size', type=int, default=256,
                     help="""Hidden size. Default: 256.""")
-parser.add_argument('--batch_size', type=int, default=128,
-                    help="""Batch size. Default: 128.""")
-parser.add_argument('--image_size', type=int, default=128 * 128 * 3,
-                    help="""Input image size. Default: 128 * 128 * 3.""")
+parser.add_argument('--batch_size', type=int, default=300,
+                    help="""Batch size. Default: 300.""")
+parser.add_argument('--image_size', type=int, default=28 * 28 * 1,
+                    help="""Input image size. Default: 28 * 28 * 3.""")
 parser.add_argument('--max_epochs', type=int, default=100,
                     help="""Max epoch. Default: 100.""")
-parser.add_argument('--display_epoch', type=int, default=2,
-                    help="""When epochs save image. Default: 2.""")
+parser.add_argument('--display_epoch', type=int, default=5,
+                    help="""When epochs save image. Default: 5.""")
 args = parser.parse_args()
 
 # Create a directory if not exists
@@ -45,13 +45,13 @@ if not os.path.exists(args.path_dir):
 
 # Image processing
 transform = transforms.Compose([
-    transforms.Resize(128),
+    transforms.Resize(28),
     transforms.ToTensor(),
     transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])  # 3 for RGB channels
 
 # MNIST dataset
-train_dataset = torchvision.datasets.ImageFolder(root=args.path_dir,
-                                                 transform=transform)
+train_dataset = torchvision.datasets.MNIST(root=args.path_dir,
+                                           transform=transform)
 
 # Data loader
 data_loader = torch.utils.data.DataLoader(dataset=train_dataset,
@@ -101,8 +101,8 @@ G = torch.load('G.pth', map_location='cpu').to(device)
 
 # Binary cross entropy loss and optimizer
 cast = nn.BCEWithLogitsLoss()
-d_optimizer = torch.optim.Adam(D.parameters(), lr=0.0001, weight_decay=1e-8)
-g_optimizer = torch.optim.Adam(G.parameters(), lr=0.0001, weight_decay=1e-8)
+d_optimizer = torch.optim.Adam(D.parameters(), lr=0.01, weight_decay=1e-8)
+g_optimizer = torch.optim.Adam(G.parameters(), lr=0.01, weight_decay=1e-8)
 
 
 def denorm(x):
@@ -180,12 +180,12 @@ for epoch in range(1, args.max_epochs + 1):
 
     # Save real images
     if epoch == 1:
-        images = images.reshape(images.size(0), 3, 128, 128)
+        images = images.reshape(images.size(0), 1, 28, 28)
         save_image(denorm(images), os.path.join(args.external_dir, 'real_images.jpg'))
 
     if epoch % args.display_epoch == 0:
         # Save sampled images
-        fake_images = fake_images.reshape(fake_images.size(0), 3, 128, 128)
+        fake_images = fake_images.reshape(fake_images.size(0), 1, 28, 28)
         save_image(denorm(fake_images),
                    os.path.join(args.external_dir,
                    f"cat.{int(epoch / args.display_epoch + 4000)}.jpg"))
