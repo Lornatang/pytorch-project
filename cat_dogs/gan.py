@@ -9,13 +9,13 @@
 import os
 
 import torch
-import torch.nn as nn
+from torch  import nn
 import torchvision
 from torchvision import transforms
 from torchvision.utils import save_image
 
 # Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Setting hyper-parameters
 # parser = argparse.ArgumentParser()
