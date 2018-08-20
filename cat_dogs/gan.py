@@ -9,8 +9,8 @@
 import os
 
 import torch
-from torch  import nn
 import torchvision
+from torch import nn
 from torchvision import transforms
 from torchvision.utils import save_image
 
@@ -88,8 +88,8 @@ G = nn.Sequential(
     nn.Tanh())
 
 # Device setting
-D = D.to(device)
-G = G.to(device)
+D = torch.load('D.ckpt').to(device)
+G = torch.load('G.ckpt').to(device)
 
 # Binary cross entropy loss and optimizer
 criterion = nn.BCEWithLogitsLoss().to(device)
