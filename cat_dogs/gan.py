@@ -96,8 +96,8 @@ class Generator(nn.Module):
 
 
 # Load model
-D = torch.load('D.pth', map_location='cpu').to(device)
-G = torch.load('G.pth', map_location='cpu').to(device)
+D = Discriminator().to(device)
+G = Generator().to(device)
 
 # Binary cross entropy loss and optimizer
 cast = nn.BCEWithLogitsLoss()
