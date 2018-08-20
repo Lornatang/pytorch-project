@@ -26,18 +26,18 @@ parser.add_argument('--external_dir', type=str, default='../data/catdog/external
                     help="""input image path dir.Default: '../data/catdog/external_data/'.""")
 parser.add_argument('--latent_size', type=int, default=64,
                     help="""Latent_size. Default: 64.""")
-parser.add_argument('--hidden_size', type=int, default=256,
-                    help="""Hidden size. Default: 256.""")
+parser.add_argument('--hidden_size', type=int, default=512,
+                    help="""Hidden size. Default: 512.""")
 parser.add_argument('--batch_size', type=int, default=400,
                     help="""Batch size. Default: 400.""")
 parser.add_argument('--image_size', type=int, default=28 * 28 * 3,
                     help="""Input image size. Default: 28 * 28 * 3.""")
-parser.add_argument('--max_epochs', type=int, default=100,
-                    help="""Max epoch. Default: 100.""")
+parser.add_argument('--max_epochs', type=int, default=500,
+                    help="""Max epoch. Default: 500.""")
 parser.add_argument('--display_epoch', type=int, default=5,
                     help="""When epochs save image. Default: 5.""")
-parser.add_argument('--model_dir', type=str, default='../../models/pytorch/GAN/mnist/',
-                    help="""Model save path dir. Default: '../../models/pytorch/GAN/mnist/'.""")
+parser.add_argument('--model_dir', type=str, default='../../models/pytorch/GAN/catdog/',
+                    help="""Model save path dir. Default: '../../models/pytorch/GAN/catdog/'.""")
 args = parser.parse_args()
 
 # Create a directory if not exists
@@ -62,30 +62,26 @@ data_loader = data.DataLoader(dataset=train_dataset,
 # Discriminator
 Discriminator = nn.Sequential(
     nn.Linear(args.image_size, args.hidden_size),
-    nn.ReLU(True),
-    nn.Linear(args.hidden_size, args.hidden_size),
-    nn.ReLU(True),
-    nn.Linear(args.hidden_size, 1)
+    nn.LeakyReLU(0.2),
+    nn.Linear(args.hidden_size, 1),
 )
 
 # Generator
 Generator = nn.Sequential(
     nn.Linear(args.latent_size, args.hidden_size),
-    nn.ReLU(True),
-    nn.Linear(args.hidden_size, args.hidden_size),
-    nn.ReLU(True),
+    nn.ReLU(),
     nn.Linear(args.hidden_size, args.image_size),
-    nn.ReLU(True)
+    nn.Sigmoid()
 )
 
 # Device setting
-D = Discriminator.to(device)
-G = Generator.to(device)
+D = torch.load(args.model_dir + 'Discriminator.pth').to(device)
+G = torch.load(args.model_dir + 'Generator.pth').to(device)
 
 # Binary cross entropy loss and optimizer
-cast = nn.BCEWithLogitsLoss().to(device)
-d_optimizer = torch.optim.Adam(D.parameters(), lr=0.0001, weight_decay=1e-5)
-g_optimizer = torch.optim.Adam(G.parameters(), lr=0.0001, weight_decay=1e-5)
+cast = nn.BCEWithLogitsLoss()
+d_optimizer = torch.optim.Adam(D.parameters(), lr=0.0001)
+g_optimizer = torch.optim.Adam(G.parameters(), lr=0.0005)
 
 
 def denorm(x):
@@ -163,10 +159,11 @@ for epoch in range(1, args.max_epochs+1):
         images = images.reshape(images.size(0), 3, 28, 28)
         save_image(denorm(images), os.path.join(args.external_dir, 'origin.jpg'))
 
-    # Save sampled images
-    fake_images = fake_images.reshape(fake_images.size(0), 3, 28, 28)
-    save_image(denorm(fake_images), os.path.join(
-        args.exteranal_dir, f"cat.{4000 + epoch}.jpg"))
+    if epoch % args.display_epoch == 0:
+        # Save sampled images
+        fake_images = fake_images.reshape(fake_images.size(0), 3, 28, 28)
+        save_image(denorm(fake_images), os.path.join(
+            args.external_dir, f"cat.{4000 + int(epoch / args.display_epoch)}.jpg"))
 
 # Save the model checkpoints
 torch.save(G, 'Generator.pth')
