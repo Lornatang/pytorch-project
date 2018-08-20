@@ -8,10 +8,8 @@
 
 import argparse
 import os
-import time
 
 import torch
-import torchvision
 from torch import nn
 from torch.utils import data
 from torchvision import datasets, transforms
@@ -81,8 +79,8 @@ Generator = nn.Sequential(
 )
 
 # Device setting
-D = torch.load(args.model_dir + 'Discriminator.pth').to(device)
-G = torch.load(args.model_dir + 'Generator.pth').to(device)
+D = torch.load(args.model_dir + 'Discriminator.pth', map_location='cpu').to(device)
+G = torch.load(args.model_dir + 'Generator.pth', map_location='cpu').to(device)
 
 # Binary cross entropy loss and optimizer
 cast = nn.BCEWithLogitsLoss().to(device)
@@ -145,7 +143,7 @@ for epoch in range(1, args.max_epochs+1):
 
         # We train G to maximize log(D(G(z)) instead of minimizing log(1-D(G(z)))
         # For the reason, see the last paragraph of section 3. https://arxiv.org/pdf/1406.2661.pdf
-        g_loss = criterion(outputs, real_labels)
+        g_loss = cast(outputs, real_labels)
 
         # Backprop and optimize
         reset_grad()
@@ -153,17 +151,20 @@ for epoch in range(1, args.max_epochs+1):
         g_optimizer.step()
 
         if (i + 1) % 10 == 0:
-            print('Epoch [{}/{}], Step [{}/{}], d_loss: {:.4f}, g_loss: {:.4f}, D(x): {:.2f}, D(G(z)): {:.2f}'
-                  .format(epoch, args.max_epochs, i + 1, total_step, d_loss.item(), g_loss.item(),
-                          real_score.mean().item(), fake_score.mean().item()))
+            print(f"Epoch [{epoch}/{args.max_epochs}], "
+                  f"Step [{i+1}/{total_step}], "
+                  f"D_loss: {d_loss.item():.4f}, "
+                  f"G_loss: {g_loss.item():.4f}, "
+                  f"D(x): {real_score.mean().item():.2f}, "
+                  f"D(G(z)): {fake_score.mean().item():.2f}")
 
     # Save real images
     if epoch == 1:
-        images = images.reshape(images.size(0), 1, 28, 28)
+        images = images.reshape(images.size(0), 3, 28, 28)
         save_image(denorm(images), os.path.join(args.exteranal_data, 'origin.jpg'))
 
     # Save sampled images
-    fake_images = fake_images.reshape(fake_images.size(0), 1, 28, 28)
+    fake_images = fake_images.reshape(fake_images.size(0), 3, 28, 28)
     save_image(denorm(fake_images), os.path.join(
         args.exteranal_data, f"cat.{4000 + epoch}.jpg"))
 
