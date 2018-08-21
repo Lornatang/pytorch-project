@@ -165,6 +165,7 @@ label = torch.FloatTensor(args.batch_size)
 real_label = 1
 fake_label = 0
 
+
 def train():
     for epoch in range(1, args.max_epochs + 1):
         for i, (img, _) in enumerate(data_loader):
@@ -203,8 +204,8 @@ def train():
             print(f"[epoch/args.max_epochs][i/len(data_loader)] Loss_D: {errD.item():.3f} Loss_G {errD.item():.3f}")
 
             save_image(fake.data,
-                    f"{args.external_dir}/{epoch}.jpg",
-                    normalize=True)
+                       f"{args.external_dir}/{epoch}.jpg",
+                       normalize=True)
 
     # Save the model checkpoints
     torch.save(Generator, args.model_dir + 'Generator.pth')
@@ -213,6 +214,7 @@ def train():
 
 def main():
     train()
+
 
 if __name__ == '__main__':
     main()
