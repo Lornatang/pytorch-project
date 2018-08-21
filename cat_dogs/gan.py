@@ -30,8 +30,8 @@ parser.add_argument('--hidden_size', type=int, default=64,
                     help="""Hidden size. Default: 64.""")
 parser.add_argument('--batch_size', type=int, default=64,
                     help="""Batch size. Default: 64.""")
-parser.add_argument('--lr', type=float, default=1e-4,
-                    help="""Train optimizer learning rate. Default: 1e-4.""")
+parser.add_argument('--lr', type=float, default=2e-4,
+                    help="""Train optimizer learning rate. Default: 2e-4.""")
 parser.add_argument('--img_size', type=int, default=28,
                     help="""Input image size. Default: 28.""")
 parser.add_argument('--max_epochs', type=int, default=50,
@@ -165,45 +165,54 @@ label = torch.FloatTensor(args.batch_size)
 real_label = 1
 fake_label = 0
 
-for epoch in range(1, args.max_epochs + 1):
-    for i, (img, _) in enumerate(data_loader):
-        # 固定生成器G，训练鉴别器D
-        optimizerD.zero_grad()
-        # 让D尽可能的把真图片判别为1
-        img = img.to(device)
-        output = netD(img)
+def train():
+    for epoch in range(1, args.max_epochs + 1):
+        for i, (img, _) in enumerate(data_loader):
+            # 固定生成器G，训练鉴别器D
+            optimizerD.zero_grad()
+            # 让D尽可能的把真图片判别为1
+            img = img.to(device)
+            output = netD(img)
 
-        label.data.fill_(real_label)
-        label = label.to(device)
-        errD_real = criterion(output, label)
-        errD_real.backward()
-        # 让D尽可能把假图片判别为0
-        label.data.fill_(fake_label)
-        noise = torch.randn(args.batch_size, args.noise, 1, 1)
-        noise = noise.to(device)
-        # 生成假图
-        fake = netG(noise)
-        output = netD(fake.detach())  # 避免梯度传到G，因为G不用更新
-        errD_fake = criterion(output, label)
-        errD_fake.backward()
-        errD = errD_fake + errD_real
-        optimizerD.step()
+            label.data.fill_(real_label)
+            label = label.to(device)
+            errD_real = criterion(output, label)
+            errD_real.backward()
+            # 让D尽可能把假图片判别为0
+            label.data.fill_(fake_label)
+            noise = torch.randn(args.batch_size, args.noise, 1, 1)
+            noise = noise.to(device)
+            # 生成假图
+            fake = netG(noise)
+            output = netD(fake.detach())  # 避免梯度传到G，因为G不用更新
+            errD_fake = criterion(output, label)
+            errD_fake.backward()
+            errD = errD_fake + errD_real
+            optimizerD.step()
 
-        # 固定鉴别器D，训练生成器G
-        optimizerG.zero_grad()
-        # 让D尽可能把G生成的假图判别为1
-        label.data.fill_(real_label)
-        label = label.to(device)
-        output = netD(fake)
-        errG = criterion(output, label)
-        errG.backward()
-        optimizerG.step()
+            # 固定鉴别器D，训练生成器G
+            optimizerG.zero_grad()
+            # 让D尽可能把G生成的假图判别为1
+            label.data.fill_(real_label)
+            label = label.to(device)
+            output = netD(fake)
+            errG = criterion(output, label)
+            errG.backward()
+            optimizerG.step()
 
-        print(f"[epoch/args.max_epochs][i/len(data_loader)] Loss_D: {errD.item():.3f} Loss_G {errD.item():.3f}")
+            print(f"[epoch/args.max_epochs][i/len(data_loader)] Loss_D: {errD.item():.3f} Loss_G {errD.item():.3f}")
 
-        save_image(fake.data,
-                   f"{args.external_data}/{epoch}.jpg",
-                   normalize=True)
-# Save the model checkpoints
-torch.save(Generator, 'Generator.pth')
-torch.save(Discriminator, 'Discriminator.pth')
+            save_image(fake.data,
+                    f"{args.external_dir}/{epoch}.jpg",
+                    normalize=True)
+
+    # Save the model checkpoints
+    torch.save(Generator, args.model_dir + 'Generator.pth')
+    torch.save(Discriminator, args.model_dir + 'Discriminator.pth')
+
+
+def main():
+    train()
+
+if __name__ == '__main__':
+    main()
