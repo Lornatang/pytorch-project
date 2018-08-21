@@ -32,8 +32,8 @@ parser.add_argument('--batch_size', type=int, default=64,
                     help="""Batch size. Default: 64.""")
 parser.add_argument('--lr', type=float, default=2e-4,
                     help="""Train optimizer learning rate. Default: 2e-4.""")
-parser.add_argument('--img_size', type=int, default=28,
-                    help="""Input image size. Default: 28.""")
+parser.add_argument('--img_size', type=int, default=96,
+                    help="""Input image size. Default: 96.""")
 parser.add_argument('--max_epochs', type=int, default=50,
                     help="""Max epoch of train of. Default: 50.""")
 parser.add_argument('--display_epoch', type=int, default=2,
@@ -48,7 +48,7 @@ if not os.path.exists(args.external_dir):
 
 # Image processing
 transform = transforms.Compose([
-    transforms.Resize(args.display_epoch),
+    transforms.Resize(args.img_size),
     transforms.ToTensor(),
     transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])  # 3 for RGB channels
 
@@ -62,7 +62,6 @@ train_dataset = datasets.MNIST(root=args.img_dir,
 data_loader = data.DataLoader(dataset=train_dataset,
                               batch_size=args.batch_size,
                               shuffle=True,
-                              num_workers=4,
                               drop_last=True)
 
 
@@ -161,12 +160,11 @@ criterion = nn.BCELoss()
 optimizerG = torch.optim.Adam(netG.parameters(), lr=args.lr, betas=(0.5, 0.999))
 optimizerD = torch.optim.Adam(netD.parameters(), lr=args.lr, betas=(0.5, 0.999))
 
-label = torch.FloatTensor(args.batch_size)
-real_label = 1
-fake_label = 0
-
 
 def train():
+    label = torch.FloatTensor(args.batch_size)
+    real_label = 1
+    fake_label = 0
     for epoch in range(1, args.max_epochs + 1):
         for i, (img, _) in enumerate(data_loader):
             # 固定生成器G，训练鉴别器D
@@ -201,7 +199,10 @@ def train():
             errG.backward()
             optimizerG.step()
 
-            print(f"[epoch/args.max_epochs][i/len(data_loader)] Loss_D: {errD.item():.3f} Loss_G {errD.item():.3f}")
+            print(f"Epoch: [{epoch}/{args.max_epochs}], "
+                  f"Step: [{i}/{len(data_loader)}], "
+                  f"Loss_D: {errD.item():.3f}, "
+                  f"Loss_G {errG.item():.3f}.")
 
             save_image(fake.data,
                        f"{args.external_dir}/{epoch}.jpg",
@@ -212,9 +213,5 @@ def train():
     torch.save(Discriminator, args.model_dir + 'Discriminator.pth')
 
 
-def main():
-    train()
-
-
 if __name__ == '__main__':
-    main()
+    train()
