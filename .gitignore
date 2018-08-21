@@ -6,3 +6,7 @@ face_recognition/face.py___jb_tmp___
 .vscode/settings.json
 cat_dogs/D.pth
 cat_dogs/G.pth
+cat_dogs/D.ckpt
+cat_dogs/Discriminator.pth
+cat_dogs/G.ckpt
+cat_dogs/Generator.pth
