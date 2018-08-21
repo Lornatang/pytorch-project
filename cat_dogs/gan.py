@@ -20,24 +20,26 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Setting hyper-parameters
 parser = argparse.ArgumentParser()
-parser.add_argument('--img_dir', type=str, default='../data/catdog/extera/',
-                    help="""input image path dir.Default: '../data/catdog/extera/'.""")
-parser.add_argument('--external_dir', type=str, default='../data/catdog/external_data/',
-                    help="""input image path dir.Default: '../data/catdog/external_data/'.""")
-parser.add_argument('--latent_size', type=int, default=64,
-                    help="""Latent_size. Default: 64.""")
-parser.add_argument('--hidden_size', type=int, default=512,
-                    help="""Hidden size. Default: 512.""")
-parser.add_argument('--batch_size', type=int, default=400,
-                    help="""Batch size. Default: 400.""")
-parser.add_argument('--image_size', type=int, default=28 * 28 * 3,
-                    help="""Input image size. Default: 28 * 28 * 3.""")
-parser.add_argument('--max_epochs', type=int, default=500,
-                    help="""Max epoch. Default: 500.""")
-parser.add_argument('--display_epoch', type=int, default=5,
-                    help="""When epochs save image. Default: 5.""")
-parser.add_argument('--model_dir', type=str, default='../../models/pytorch/GAN/catdog/',
-                    help="""Model save path dir. Default: '../../models/pytorch/GAN/catdog/'.""")
+parser.add_argument('--img_dir', type=str, default='../data/mnist/',
+                    help="""input image path dir.Default: '../data/mnist/'.""")
+parser.add_argument('--external_dir', type=str, default='../data/mnist/external_data/',
+                    help="""input image path dir.Default: '../data/mnist/external_data/'.""")
+parser.add_argument('--noise', type=int, default=100,
+                    help="""Data noise. Default: 100.""")
+parser.add_argument('--hidden_size', type=int, default=64,
+                    help="""Hidden size. Default: 64.""")
+parser.add_argument('--batch_size', type=int, default=64,
+                    help="""Batch size. Default: 64.""")
+parser.add_argument('--lr', type=float, default=1e-4,
+                    help="""Train optimizer learning rate. Default: 1e-4.""")
+parser.add_argument('--img_size', type=int, default=28,
+                    help="""Input image size. Default: 28.""")
+parser.add_argument('--max_epochs', type=int, default=50,
+                    help="""Max epoch of train of. Default: 50.""")
+parser.add_argument('--display_epoch', type=int, default=2,
+                    help="""When epochs save image. Default: 2.""")
+parser.add_argument('--model_dir', type=str, default='../../models/pytorch/GAN/mnist/',
+                    help="""Model save path dir. Default: '../../models/pytorch/GAN/mnist/'.""")
 args = parser.parse_args()
 
 # Create a directory if not exists
@@ -46,125 +48,162 @@ if not os.path.exists(args.external_dir):
 
 # Image processing
 transform = transforms.Compose([
-    transforms.Resize(28),
+    transforms.Resize(args.display_epoch),
     transforms.ToTensor(),
     transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])  # 3 for RGB channels
 
 # train dataset
-train_dataset = datasets.ImageFolder(root=args.img_dir,
-                                     transform=transform)
+train_dataset = datasets.MNIST(root=args.img_dir,
+                               transform=transform,
+                               download=True,
+                               train=True)
 
 # Data loader
 data_loader = data.DataLoader(dataset=train_dataset,
                               batch_size=args.batch_size,
-                              shuffle=True)
+                              shuffle=True,
+                              num_workers=4,
+                              drop_last=True)
 
-# Discriminator
-Discriminator = nn.Sequential(
-    nn.Linear(args.image_size, args.hidden_size),
-    nn.LeakyReLU(0.2),
-    nn.Linear(args.hidden_size, 1),
-)
 
 # Generator
-Generator = nn.Sequential(
-    nn.Linear(args.latent_size, args.hidden_size),
-    nn.ReLU(),
-    nn.Linear(args.hidden_size, args.image_size),
-    nn.Sigmoid()
-)
+class Generator(nn.Module):
+    def __init__(self):
+        super(Generator, self).__init__()
+        # layer1输入的是一个100x1x1的随机噪声, 输出尺寸(args.hidden_size * 8)x4x4
+        self.layer1 = nn.Sequential(
+            nn.ConvTranspose2d(args.noise, args.hidden_size * 8, 4, 1, 0),
+            nn.BatchNorm2d(args.hidden_size * 8),
+            nn.ReLU(True)
+        )
+        # layer2输出尺寸(args.hidden_size * 4)x8x8
+        self.layer2 = nn.Sequential(
+            nn.ConvTranspose2d(args.hidden_size * 8, args.hidden_size * 4, 4, 2, 1),
+            nn.BatchNorm2d(args.hidden_size * 4),
+            nn.ReLU(True)
+        )
+        # layer3输出尺寸(args.hidden_size * 2)x16x16
+        self.layer3 = nn.Sequential(
+            nn.ConvTranspose2d(args.hidden_size * 4, args.hidden_size * 2, 4, 2, 1),
+            nn.BatchNorm2d(args.hidden_size * 2),
+            nn.ReLU(True)
+        )
+        # layer4输出尺寸(args.hidden_size)x32x32
+        self.layer4 = nn.Sequential(
+            nn.ConvTranspose2d(args.hidden_size * 2, args.hidden_size, 4, 2, 1),
+            nn.BatchNorm2d(args.hidden_size),
+            nn.ReLU(True)
+        )
+        # layer5输出尺寸 1x96x96  BGR需要输入3x96x96
+        self.layer5 = nn.Sequential(
+            nn.ConvTranspose2d(args.hidden_size, 1, 5, 3, 1, bias=False),
+            nn.Tanh()
+        )
 
-# Device setting
-D = torch.load(args.model_dir + 'Discriminator.pth').to(device)
-G = torch.load(args.model_dir + 'Generator.pth').to(device)
-
-# Binary cross entropy loss and optimizer
-cast = nn.BCEWithLogitsLoss()
-d_optimizer = torch.optim.Adam(D.parameters(), lr=0.0001)
-g_optimizer = torch.optim.Adam(G.parameters(), lr=0.0005)
-
-
-def denorm(x):
-    out = (x + 1) / 2
-    return out.clamp(0, 1)
+    # 定义Generator的前向传播
+    def forward(self, x):
+        out = self.layer1(x)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = self.layer5(out)
+        return out
 
 
-def reset_grad():
-    d_optimizer.zero_grad()
-    g_optimizer.zero_grad()
+# 定义鉴别器网络D
+class Discriminator(nn.Module):
+    def __init__(self):
+        super(Discriminator, self).__init__()
+        # layer1 输入 1 x 96 x 96, 输出 (args.hidden_size) x 32 x 32
+        self.layer1 = nn.Sequential(
+            nn.Conv2d(1, args.hidden_size, 5, 3, 1),
+            nn.BatchNorm2d(args.hidden_size),
+            nn.LeakyReLU(0.2, True)
+        )
+        # layer2 输出 (args.hidden_size * 2) x 16 x 16
+        self.layer2 = nn.Sequential(
+            nn.Conv2d(args.hidden_size, args.hidden_size * 2, 4, 2, 1),
+            nn.BatchNorm2d(args.hidden_size * 2),
+            nn.LeakyReLU(0.2, True)
+        )
+        # layer3 输出 (args.hidden_size * 4) x 8 x 8
+        self.layer3 = nn.Sequential(
+            nn.Conv2d(args.hidden_size * 2, args.hidden_size * 4, 4, 2, 1),
+            nn.BatchNorm2d(args.hidden_size * 4),
+            nn.LeakyReLU(0.2, True)
+        )
+        # layer4 输出 (args.hidden_size * 8) x 4 x 4
+        self.layer4 = nn.Sequential(
+            nn.Conv2d(args.hidden_size * 4, args.hidden_size * 8, 4, 2, 1),
+            nn.BatchNorm2d(args.hidden_size * 8),
+            nn.LeakyReLU(0.2, True)
+        )
+        # layer5 输出一个数(概率)
+        self.layer5 = nn.Sequential(
+            nn.Conv2d(args.hidden_size * 8, 1, 4, 1, 0),
+            nn.Sigmoid()
+        )
+
+    # 定义NetD的前向传播
+    def forward(self, x):
+        out = self.layer1(x)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = self.layer5(out)
+        return out
 
 
-# Start training
-total_step = len(data_loader)
-for epoch in range(1, args.max_epochs+1):
-    for i, (images, _) in enumerate(data_loader):
-        images = images.reshape(args.batch_size, -1).to(device)
+netG = Generator().to(device)
+netD = Discriminator().to(device)
 
-        # Create the labels which are later used as input for the BCE loss
-        real_labels = torch.ones(args.batch_size, 1).to(device)
-        fake_labels = torch.zeros(args.batch_size, 1).to(device)
+criterion = nn.BCELoss()
+optimizerG = torch.optim.Adam(netG.parameters(), lr=args.lr, betas=(0.5, 0.999))
+optimizerD = torch.optim.Adam(netD.parameters(), lr=args.lr, betas=(0.5, 0.999))
 
-        # ================================================================== #
-        #                      Train the discriminator                       #
-        # ================================================================== #
+label = torch.FloatTensor(args.batch_size)
+real_label = 1
+fake_label = 0
 
-        # Compute BCE_Loss using real images where BCE_Loss(x, y): - y * log(D(x)) - (1-y) * log(1 - D(x))
-        # Second term of the loss is always zero since real_labels == 1
-        outputs = D(images)
-        d_loss_real = cast(outputs, real_labels)
-        real_score = outputs
+for epoch in range(1, args.max_epochs + 1):
+    for i, (img, _) in enumerate(data_loader):
+        # 固定生成器G，训练鉴别器D
+        optimizerD.zero_grad()
+        # 让D尽可能的把真图片判别为1
+        img = img.to(device)
+        output = netD(img)
 
-        # Compute BCELoss using fake images
-        # First term of the loss is always zero since fake_labels == 0
-        z = torch.randn(args.batch_size, args.latent_size).to(device)
-        fake_images = G(z)
-        outputs = D(fake_images)
-        d_loss_fake = cast(outputs, fake_labels)
-        fake_score = outputs
+        label.data.fill_(real_label)
+        label = label.to(device)
+        errD_real = criterion(output, label)
+        errD_real.backward()
+        # 让D尽可能把假图片判别为0
+        label.data.fill_(fake_label)
+        noise = torch.randn(args.batch_size, args.noise, 1, 1)
+        noise = noise.to(device)
+        # 生成假图
+        fake = netG(noise)
+        output = netD(fake.detach())  # 避免梯度传到G，因为G不用更新
+        errD_fake = criterion(output, label)
+        errD_fake.backward()
+        errD = errD_fake + errD_real
+        optimizerD.step()
 
-        # Backprop and optimize
-        d_loss = d_loss_real + d_loss_fake
-        reset_grad()
-        d_loss.backward()
-        d_optimizer.step()
+        # 固定鉴别器D，训练生成器G
+        optimizerG.zero_grad()
+        # 让D尽可能把G生成的假图判别为1
+        label.data.fill_(real_label)
+        label = label.to(device)
+        output = netD(fake)
+        errG = criterion(output, label)
+        errG.backward()
+        optimizerG.step()
 
-        # ================================================================== #
-        #                        Train the generator                         #
-        # ================================================================== #
+        print(f"[epoch/args.max_epochs][i/len(data_loader)] Loss_D: {errD.item():.3f} Loss_G {errD.item():.3f}")
 
-        # Compute loss with fake images
-        z = torch.randn(args.batch_size, args.latent_size).to(device)
-        fake_images = G(z)
-        outputs = D(fake_images)
-
-        # We train G to maximize log(D(G(z)) instead of minimizing log(1-D(G(z)))
-        # For the reason, see the last paragraph of section 3. https://arxiv.org/pdf/1406.2661.pdf
-        g_loss = cast(outputs, real_labels)
-
-        # Backprop and optimize
-        reset_grad()
-        g_loss.backward()
-        g_optimizer.step()
-
-        if (i + 1) % 10 == 0:
-            print(f"Epoch [{epoch}/{args.max_epochs}], "
-                  f"Step [{i+1}/{total_step}], "
-                  f"D_loss: {d_loss.item():.4f}, "
-                  f"G_loss: {g_loss.item():.4f}, "
-                  f"D(x): {real_score.mean().item():.2f}, "
-                  f"D(G(z)): {fake_score.mean().item():.2f}")
-
-    # Save real images
-    if epoch == 1:
-        images = images.reshape(images.size(0), 3, 28, 28)
-        save_image(denorm(images), os.path.join(args.external_dir, 'origin.jpg'))
-
-    if epoch % args.display_epoch == 0:
-        # Save sampled images
-        fake_images = fake_images.reshape(fake_images.size(0), 3, 28, 28)
-        save_image(denorm(fake_images), os.path.join(
-            args.external_dir, f"cat.{4000 + int(epoch / args.display_epoch)}.jpg"))
-
+        save_image(fake.data,
+                   f"{args.external_data}/{epoch}.jpg",
+                   normalize=True)
 # Save the model checkpoints
-torch.save(G, 'Generator.pth')
-torch.save(D, 'Discriminator.pth')
+torch.save(Generator, 'Generator.pth')
+torch.save(Discriminator, 'Discriminator.pth')
