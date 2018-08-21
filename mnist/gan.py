@@ -199,14 +199,12 @@ def train():
             errG.backward()
             optimizerG.step()
 
-            print(f"Epoch: [{epoch}/{args.max_epochs}], "
-                  f"Step: [{i}/{len(data_loader)}], "
-                  f"Loss_D: {errD.item():.3f}, "
-                  f"Loss_G {errG.item():.3f}.")
-
-            save_image(fake.data,
-                       f"{args.external_dir}/{epoch}.jpg",
-                       normalize=True)
+            if (i + 1) % 200 == 0:
+                print(f"Epoch: [{epoch}/{args.max_epochs}], "
+                      f"Step: [{i}/{len(data_loader)}], "
+                      f"Loss_D: {errD.item():.3f}, "
+                      f"Loss_G {errG.item():.3f}.")
+                save_image(fake.data, f"{args.external_dir}/{epoch}.jpg", normalize=True)
 
     # Save the model checkpoints
     torch.save(Generator, args.model_dir + 'Generator.pth')
