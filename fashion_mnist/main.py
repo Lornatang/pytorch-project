@@ -42,12 +42,14 @@ if not os.path.exists(args.model_path):
 
 # Define transforms.
 train_transform = transforms.Compose([
+    transforms.Resize(32),
     transforms.RandomHorizontalFlip(0.75),
     transforms.RandomCrop(24),
     transforms.ToTensor(),
     transforms.Normalize((0.1307,), (0.3081,)),
 ])
 test_transform = transforms.Compose([
+    transforms.Resize(32),
     transforms.ToTensor(),
     transforms.Normalize((0.1307,), (0.3081,)),
 ])
