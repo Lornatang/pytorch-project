@@ -13,8 +13,11 @@ import os
 import time
 import torch
 import torchvision
+from PIL import ImageFile
 from torch import nn, optim
 from torchvision import transforms
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
