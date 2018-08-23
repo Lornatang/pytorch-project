@@ -123,8 +123,8 @@ def train():
 
             print(f"Acc: {(correct_prediction / total):4f}")
 
-    # Save the model checkpoint
-    torch.save(model, args.model_path + args.model_name)
+        # Save the model checkpoint
+        torch.save(model, args.model_path + args.model_name)
     print(f"Model save to {args.model_path + args.model_name}.")
 
 
