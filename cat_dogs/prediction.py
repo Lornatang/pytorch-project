@@ -23,7 +23,7 @@ parser.add_argument('--batch_size', type=int, default=64,
                     help="""Batch_size default:64.""")
 parser.add_argument('--num_classes', type=int, default=2,
                     help="""num classes""")
-parser.add_argument('--model_path', type=str, default='../../models/pytorch/',
+parser.add_argument('--model_path', type=str, default='../../models/pytorch/cat_dogs/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='catdog.pth',
                     help="""Model name.""")
