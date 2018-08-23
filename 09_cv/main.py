@@ -9,8 +9,8 @@
 
 import argparse
 import os
-
 import time
+
 import torch
 import torchvision
 from PIL import ImageFile
@@ -62,18 +62,22 @@ train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
                                            batch_size=args.batch_size,
                                            shuffle=True)
 
+test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'test/',
+                                                 transform=transform)
+
+test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
+                                          batch_size=args.batch_size,
+                                          shuffle=True)
+
 
 def train():
     print(f"Train numbers:{len(train_datasets)}")
 
     # Load model
-    model = torchvision.models.resnet18(pretrained=True).to(device)
-    model.avgpool = nn.AvgPool2d(4, 1)
-    model.fc = nn.Linear(512, 3)
-    # if torch.cuda.is_available():
-    #     model = torch.load(args.model_path + args.model_name).to(device)
-    # else:
-    #     model = torch.load(args.model_path + args.model_name, map_location='cpu')
+    if torch.cuda.is_available():
+        model = torch.load(args.model_path + args.model_name).to(device)
+    else:
+        model = torch.load(args.model_path + args.model_name, map_location='cpu')
     print(model)
     # cast
     cast = nn.CrossEntropyLoss().to(device)
@@ -108,7 +112,7 @@ def train():
 
             correct_prediction = 0.
             total = 0
-            for images, labels in train_loader:
+            for images, labels in test_loader:
                 # to GPU
                 images = images.to(device)
                 labels = labels.to(device)
