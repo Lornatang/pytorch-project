@@ -19,8 +19,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser("""Image classifical!""")
 parser.add_argument('--path', type=str, default='../data/catdog/',
                     help="""image dir path default: '../data/catdog/'.""")
-parser.add_argument('--batch_size', type=int, default=64,
-                    help="""Batch_size default:64.""")
+parser.add_argument('--batch_size', type=int, default=256,
+                    help="""Batch_size default:256.""")
 parser.add_argument('--num_classes', type=int, default=2,
                     help="""num classes""")
 parser.add_argument('--model_path', type=str, default='../../models/pytorch/cat_dogs/',
@@ -42,7 +42,7 @@ transform = transforms.Compose([
 ])
 
 # Load data
-test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'test/',
+test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
                                                  transform=transform)
 
 
