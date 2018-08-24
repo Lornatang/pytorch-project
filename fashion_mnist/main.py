@@ -1,20 +1,19 @@
 """
 # author: shiyipaisizuo
 # contact: shiyipaisizuo@gmail.com
-# file: alexnet.py
-# time: 2018/7/31 15:45
+# file: main.py
+# time: 2018/8/21 15:45
 # license: MIT
 """
-
 
 import argparse
 import os
 import time
 
 import torch
-import torch.nn as nn
-import torchvision.models
-import torchvision.transforms as transforms
+import torchvision
+from torch import nn
+from torchvision import transforms
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -30,11 +29,11 @@ parser.add_argument('--batch_size', type=int, default=128,
                     help="""batch size. Default=128""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
-parser.add_argument('--model_path', type=str, default='../../models/pytorch/',
+parser.add_argument('--model_path', type=str, default='../../models/pytorch/fashion_mnist/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='fashion_mnist.pth',
                     help="""Model name""")
-parser.add_argument('--display_epoch', type=int, default=1)
+parser.add_argument('--display_epoch', type=int, default=5)
 args = parser.parse_args()
 
 # Create model
@@ -43,11 +42,14 @@ if not os.path.exists(args.model_path):
 
 # Define transforms.
 train_transform = transforms.Compose([
-    transforms.RandomHorizontalFlip(),
+    transforms.Resize(32),
+    transforms.RandomHorizontalFlip(0.75),
+    transforms.RandomCrop(24),
     transforms.ToTensor(),
     transforms.Normalize((0.1307,), (0.3081,)),
 ])
 test_transform = transforms.Compose([
+    transforms.Resize(32),
     transforms.ToTensor(),
     transforms.Normalize((0.1307,), (0.3081,)),
 ])
@@ -70,62 +72,18 @@ train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
 
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=args.batch_size,
-                                          shuffle=False)
-
-
-class AlexNet(nn.Module):
-    def __init__(self, category=args.num_classes):
-        super(AlexNet, self).__init__()
-        self.category = args.num_classes
-        self.features = nn.Sequential(
-            # Conv1
-            nn.Conv2d(1, 64, kernel_size=11, stride=4, padding=2),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False),
-            # Conv2
-            nn.Conv2d(64, 192, kernel_size=5, stride=1, padding=2),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False),
-            # Conv3
-            nn.Conv2d(192, 384, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            # Conv4
-            nn.Conv2d(384, 256, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            # Conv5
-            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-        )
-        self.classifical = nn.Sequential(
-            nn.Dropout(p=0.5),
-            nn.Linear(256, 128),
-            nn.ReLU(inplace=True),
-
-            nn.Dropout(p=0.5),
-            nn.Linear(128, 64),
-            nn.ReLU(inplace=True),
-
-            nn.Linear(64, category)
-        )
-
-    def forward(self, x):
-
-        x = self.features(x)
-
-        x = x.view(x.size(0), -1)
-
-        x = self.classifical(x)
-
-        return x
+                                          shuffle=True)
 
 
 # Load model
-model = AlexNet().to(device)
-print(AlexNet())
+model = torchvision.models.resnet18(pretrained=True).to(device)
+model.avgpool = nn.AvgPool2d(1, 1).to(device)
+model.fc = nn.Linear(512, 10).to(device)
+print(model)
 # cast
-cast = nn.CrossEntropyLoss()
+cast = nn.CrossEntropyLoss().to(device)
 # Optimization
-optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-6)
 
 
 def main():
@@ -149,12 +107,11 @@ def main():
             end = time.time()
             print(f"Epoch [{epoch}/{args.epochs}], "
                   f"Loss: {loss.item():.8f}, "
-                  f"Time: {(end-start):.1f}sec!")
+                  f"Time: {(end-start) * args.display_epoch:.1f}sec!")
 
             # Test the model
             model.eval()  # eval mode (batchnorm uses moving mean/variance instead of mini-batch mean/variance)
-        with torch.no_grad():
-            correct = 0
+            correct = 0.
             total = 0
             for images, labels in test_loader:
                 images = images.to(device)
@@ -166,10 +123,11 @@ def main():
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
 
-            print(f"Test Accuracy: {(correct / 100):.2f}%")
+            print(f"Test Accuracy: {100 * correct / total:.2f}.")
 
-    # Save the model checkpoint
-    torch.save(model, args.model_path + args.model_name)
+        # Save the model checkpoint
+        torch.save(model, args.model_path + args.model_name)
+    print(f"Model save to {args.model_path + args.model_name}.")
 
 
 if __name__ == '__main__':

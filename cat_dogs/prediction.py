@@ -51,7 +51,7 @@ test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
                                           shuffle=True)
 
 
-def test():
+def main():
     print(f"test numbers: {len(test_datasets)}.")
     # Load model
     if torch.cuda.is_available():
@@ -79,4 +79,4 @@ def test():
 
 
 if __name__ == '__main__':
-    test()
+    main()
