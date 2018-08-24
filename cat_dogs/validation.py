@@ -41,7 +41,7 @@ transform = transforms.Compose([
     transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])  # 归一化
 ])
 # Load data
-val_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
+val_datasets = torchvision.datasets.ImageFolder(root=args.path + 'acc/',
                                                 transform=transform)
 
 
