@@ -20,21 +20,21 @@ from torchvision.models import resnet18
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--path', type=str, default='../data/mnist/',
-                    help="""image path. Default='../data/mnist/'.""")
-parser.add_argument('--epochs', type=int, default=100,
-                    help="""num epochs. Default=100""")
+parser.add_argument('--path', type=str, default='../../data/MNIST/mnist/',
+                    help="""image path. Default='../../data/MNIST/mnist/'.""")
+parser.add_argument('--epochs', type=int, default=10,
+                    help="""num epochs. Default=10""")
 parser.add_argument('--num_classes', type=int, default=10,
                     help="""0 ~ 9,. Default=10""")
 parser.add_argument('--batch_size', type=int, default=128,
                     help="""batch size. Default=128""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
-parser.add_argument('--model_path', type=str, default='../../models/pytorch/mnist/',
+parser.add_argument('--model_path', type=str, default='../../models/pytorch/MNIST/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='mnist.pth',
                     help="""Model name""")
-parser.add_argument('--display_epoch', type=int, default=5)
+parser.add_argument('--display_epoch', type=int, default=1)
 args = parser.parse_args()
 
 # Create model
@@ -43,7 +43,7 @@ if not os.path.exists(args.model_path):
 
 train_transform = transforms.Compose([
     transforms.Resize(32),
-    transforms.RandomHorizontalFlip(0.75),
+    transforms.RandomHorizontalFlip(0.5),
     transforms.RandomCrop(24),
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
@@ -52,7 +52,8 @@ train_transform = transforms.Compose([
 test_transform = transforms.Compose([
     transforms.Resize(32),
     transforms.ToTensor(),
-    transforms.Normalize((0.1307,), (0.3081,))
+    transforms.RandomCrop(24),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
 # Load data

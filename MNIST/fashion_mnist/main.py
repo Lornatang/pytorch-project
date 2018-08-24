@@ -21,8 +21,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser()
 parser.add_argument('--path', type=str, default='../../data/MNIST/FashionMNIST/',
                     help="""image path. Default='../../data/MNIST/FashionMNIST/'.""")
-parser.add_argument('--epochs', type=int, default=100,
-                    help="""num epochs. Default=100""")
+parser.add_argument('--epochs', type=int, default=10,
+                    help="""num epochs. Default=10""")
 parser.add_argument('--num_classes', type=int, default=10,
                     help="""0 ~ 9,. Default=10""")
 parser.add_argument('--batch_size', type=int, default=128,
@@ -33,7 +33,7 @@ parser.add_argument('--model_path', type=str, default='../../../models/pytorch/M
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='fashion_mnist.pth',
                     help="""Model name""")
-parser.add_argument('--display_epoch', type=int, default=5)
+parser.add_argument('--display_epoch', type=int, default=1)
 args = parser.parse_args()
 
 # Create model
@@ -43,15 +43,17 @@ if not os.path.exists(args.model_path):
 # Define transforms.
 train_transform = transforms.Compose([
     transforms.Resize(32),
-    transforms.RandomHorizontalFlip(0.75),
+    transforms.RandomHorizontalFlip(0.5),
     transforms.RandomCrop(24),
     transforms.ToTensor(),
-    transforms.Normalize((0.1307,), (0.3081,)),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
+
 test_transform = transforms.Compose([
     transforms.Resize(32),
     transforms.ToTensor(),
-    transforms.Normalize((0.1307,), (0.3081,)),
+    transforms.RandomCrop(24),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
 # Fashion mnist dataset
@@ -75,18 +77,16 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           shuffle=True)
 
 
-# Load model
-model = torchvision.models.resnet18(pretrained=True).to(device)
-model.avgpool = nn.AvgPool2d(1, 1).to(device)
-model.fc = nn.Linear(512, 10).to(device)
-print(model)
-# cast
-cast = nn.CrossEntropyLoss().to(device)
-# Optimization
-optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-6)
-
-
 def main():
+    # Load model
+    model = torchvision.models.resnet18(pretrained=True).to(device)
+    model.avgpool = nn.AvgPool2d(1, 1).to(device)
+    model.fc = nn.Linear(512, 10).to(device)
+    print(model)
+    # cast
+    cast = nn.CrossEntropyLoss().to(device)
+    # Optimization
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-8)
     model.train()
     for epoch in range(1, args.epochs + 1):
         start = time.time()
