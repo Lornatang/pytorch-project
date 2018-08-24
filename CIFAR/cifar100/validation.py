@@ -39,6 +39,14 @@ transform = transforms.Compose([
     transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])  # 归一化
 ])
 # Load data
+train_datasets = torchvision.datasets.ImageFolder(root=args.path,
+                                                  transform=transform)
+
+
+train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
+                                           batch_size=args.batch_size,
+                                           shuffle=True)
+
 val_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
                                                 transform=transform)
 
@@ -47,10 +55,10 @@ val_loader = torch.utils.data.DataLoader(dataset=val_datasets,
                                          batch_size=args.batch_size,
                                          shuffle=True)
 # train_datasets dict
-item = {'plane': 0, 'car': 1, 'bird': 2, 'cat': 3, 'deer': 4, 'dog': 5, 'frog': 6, 'horse': 7, 'ship': 8, 'truck': 9}
+item = train_datasets.class_to_idx
 
 
-def val():
+def main():
     # Load model
     if torch.cuda.is_available():
         model = torch.load(args.model_path + args.model_name).to(device)
@@ -74,4 +82,4 @@ def val():
 
 
 if __name__ == '__main__':
-    val()
+    main()

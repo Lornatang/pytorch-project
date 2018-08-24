@@ -2,7 +2,7 @@
 # author: shiyipaisizuo
 # contact: shiyipaisizuo@gmail.com
 # file: prediction.py
-# time: 2018/8/14 09:35
+# time: 2018/8/24 22:18
 # license: MIT
 """
 
@@ -17,15 +17,15 @@ from torchvision import transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../../data/CIFAR/cifar10/',
-                    help="""image dir path default: '../../data/CIFAR/cifar10/'.""")
-parser.add_argument('--batch_size', type=int, default=1,
-                    help="""Batch_size default:1.""")
-parser.add_argument('--num_classes', type=int, default=10,
-                    help="""num classes. Default: 10.""")
-parser.add_argument('--model_path', type=str, default='../../../models/pytorch/',
+parser.add_argument('--path', type=str, default='../../data/CALTECH/102/',
+                    help="""image dir path default: '../../data/CALTECH/102/'.""")
+parser.add_argument('--batch_size', type=int, default=128,
+                    help="""Batch_size default:128.""")
+parser.add_argument('--num_classes', type=int, default=102,
+                    help="""num classes. Default: 102.""")
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/caltech/',
                     help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='cifar10.pth',
+parser.add_argument('--model_name', type=str, default='102.pth',
                     help="""Model name.""")
 
 args = parser.parse_args()
@@ -35,18 +35,16 @@ if not os.path.exists(args.model_path):
     os.makedirs(args.model_path)
 
 transform = transforms.Compose([
-    transforms.Resize(32),  # 将图像转化为128 * 128
-    transforms.RandomCrop(24),  # 从图像中裁剪一个114 * 114的
+    transforms.Resize(128),  # 将图像转化为800 * 800
+    transforms.RandomCrop(114),  # 从图像中裁剪一个24 * 24的
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),  # 归一化
+    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])  # 归一化
 ])
 
-# Load data
-test_datasets = torchvision.datasets.CIFAR10(root=args.path,
-                                             download=True,
-                                             transform=transform,
-                                             train=False)
 
+# Load data
+test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
+                                                 transform=transform)
 
 test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
                                           batch_size=args.batch_size,
@@ -54,15 +52,17 @@ test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
 
 
 def main():
-    print(f"test numbers: {len(test_datasets)}.")
+    print(f"Test numbers:{len(test_datasets)}")
+
     # Load model
     if torch.cuda.is_available():
         model = torch.load(args.model_path + args.model_name).to(device)
     else:
         model = torch.load(args.model_path + args.model_name, map_location='cpu')
+
     model.eval()
 
-    correct_prediction = 0.
+    correct = 0.
     total = 0
     for images, labels in test_loader:
         # to GPU
@@ -75,10 +75,9 @@ def main():
         # val_loader total
         total += labels.size(0)
         # add correct
-        print(f"pred {predicted}")
-        correct_prediction += (predicted == labels).sum().item()
+        correct += (predicted == labels).sum().item()
 
-    print(f"Acc: {(correct_prediction / total):4f}")
+    print(f"Acc: {100 * correct / total:.4f}.")
 
 
 if __name__ == '__main__':

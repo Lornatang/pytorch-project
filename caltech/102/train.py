@@ -13,25 +13,25 @@ import time
 import torch
 import torchvision
 from torch import nn, optim
-from torchvision import transforms
+from torchvision import transforms, models
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../../data/dog/',
-                    help="""image dir path default: '../../data/dog/'.""")
+parser.add_argument('--path', type=str, default='../../data/CALTECH/102/',
+                    help="""image dir path default: '../../data/CALTECH/102/'.""")
 parser.add_argument('--epochs', type=int, default=10,
                     help="""Epoch default:10.""")
 parser.add_argument('--batch_size', type=int, default=128,
                     help="""Batch_size default:128.""")
 parser.add_argument('--lr', type=float, default=1e-4,
                     help="""learning_rate. Default=1e-4""")
-parser.add_argument('--num_classes', type=int, default=120,
+parser.add_argument('--num_classes', type=int, default=102,
                     help="""num classes. Default: 102.""")
-parser.add_argument('--model_path', type=str, default='../../../models/pytorch/dogs/',
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/caltech/',
                     help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='dog.pth',
+parser.add_argument('--model_name', type=str, default='102.pth',
                     help="""Model name.""")
 parser.add_argument('--display_epoch', type=int, default=1)
 
@@ -61,26 +61,29 @@ train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
 test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
                                                  transform=transform)
 
-test_loader = torch.utils.data.DataLoader(dataset=train_datasets,
+test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
                                           batch_size=args.batch_size,
                                           shuffle=True)
 
 
 def main():
     print(f"Train numbers:{len(train_datasets)}")
+    print(f"Test numbers:{len(test_datasets)}")
 
     # Load model
-    if torch.cuda.is_available():
-        model = torch.load(args.model_path + args.model_name).to(device)
-    else:
-        model = torch.load(args.model_path + args.model_name, map_location='cpu')
+    # if torch.cuda.is_available():
+    #     model = torch.load(args.model_path + args.model_name).to(device)
+    # else:
+    #     model = torch.load(args.model_path + args.model_name, map_location='cpu')
+    model = models.resnet18(pretrained=True).to(device)
+    model.avgpool = nn.AvgPool2d(4, 1).to(device)
+    model.fc = nn.Linear(512, args.num_classes).to(device)
     print(model)
     # cast
     cast = nn.CrossEntropyLoss().to(device)
     # Optimization
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-8)
 
-    model.train()
     for epoch in range(1, args.epochs + 1):
         model.train()
         # start time
@@ -106,7 +109,7 @@ def main():
 
             model.eval()
 
-            correct_prediction = 0.
+            correct = 0.
             total = 0
             for images, labels in test_loader:
                 # to GPU
@@ -119,9 +122,9 @@ def main():
                 # val_loader total
                 total += labels.size(0)
                 # add correct
-                correct_prediction += (predicted == labels).sum().item()
+                correct += (predicted == labels).sum().item()
 
-            print(f"Acc: {(correct_prediction / total):4f}")
+            print(f"Acc: {100 * correct / total:.4f}.")
 
         # Save the model checkpoint
         torch.save(model, args.model_path + args.model_name)
