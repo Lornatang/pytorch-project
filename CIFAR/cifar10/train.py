@@ -19,8 +19,8 @@ from torchvision import transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../data/cifar10/',
-                    help="""image dir path default: '../data/cifar10/'.""")
+parser.add_argument('--path', type=str, default='../../data/cifar10/',
+                    help="""image dir path default: '../../data/cifar10/'.""")
 parser.add_argument('--epochs', type=int, default=50,
                     help="""Epoch default:50.""")
 parser.add_argument('--batch_size', type=int, default=256,
@@ -29,7 +29,7 @@ parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
 parser.add_argument('--num_classes', type=int, default=10,
                     help="""num classes""")
-parser.add_argument('--model_path', type=str, default='../../models/pytorch/',
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='cifar10.pth',
                     help="""Model name.""")
@@ -75,13 +75,10 @@ def train():
     print(f"Train numbers:{len(train_datasets)}")
 
     # Load model
-    # if torch.cuda.is_available():
-    #     model = torch.load(args.model_path + args.model_name).to(device)
-    # else:
-    #     model = torch.load(args.model_path + args.model_name, map_location='cpu')
-    model = torchvision.models.resnet18(predicted=True).to(device)
-    model.avgpool = nn.AvgPool2d(1, 1)
-    model.fc = nn.Linear(512, args.num_classes)
+    if torch.cuda.is_available():
+        model = torch.load(args.model_path + args.model_name).to(device)
+    else:
+        model = torch.load(args.model_path + args.model_name, map_location='cpu')
     print(model)
     # cast
     cast = nn.CrossEntropyLoss().to(device)
