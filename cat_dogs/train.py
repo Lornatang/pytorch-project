@@ -8,8 +8,8 @@
 
 import argparse
 import os
-
 import time
+
 import torch
 import torchvision
 from torch import nn, optim
@@ -19,19 +19,19 @@ from torchvision import transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../data/catdog/',
-                    help="""image dir path default: '../data/catdog/'.""")
+parser.add_argument('--path', type=str, default='../data/dog/',
+                    help="""image dir path default: '../data/dog/'.""")
 parser.add_argument('--epochs', type=int, default=10,
                     help="""Epoch default:10.""")
 parser.add_argument('--batch_size', type=int, default=128,
                     help="""Batch_size default:128.""")
 parser.add_argument('--lr', type=float, default=1e-4,
                     help="""learning_rate. Default=1e-4""")
-parser.add_argument('--num_classes', type=int, default=2,
-                    help="""num classes""")
-parser.add_argument('--model_path', type=str, default='../../models/pytorch/cat_dogs/',
+parser.add_argument('--num_classes', type=int, default=120,
+                    help="""num classes. Default: 120.""")
+parser.add_argument('--model_path', type=str, default='../../models/pytorch/dogs/',
                     help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='catdog.pth',
+parser.add_argument('--model_name', type=str, default='dog.pth',
                     help="""Model name.""")
 parser.add_argument('--display_epoch', type=int, default=1)
 
@@ -70,10 +70,13 @@ def main():
     print(f"Train numbers:{len(train_datasets)}")
 
     # Load model
-    if torch.cuda.is_available():
-        model = torch.load(args.model_path + args.model_name).to(device)
-    else:
-        model = torch.load(args.model_path + args.model_name, map_location='cpu')
+    # if torch.cuda.is_available():
+    #     model = torch.load(args.model_path + args.model_name).to(device)
+    # else:
+    #     model = torch.load(args.model_path + args.model_name, map_location='cpu')
+    model = torchvision.models.resnet18(pretrained=True).to(device)
+    model.avgpool = nn.AvgPool2d(4, 1).to(device)
+    model.fc = nn.Linear(512, args.num_classes).to(device)
     print(model)
     # cast
     cast = nn.CrossEntropyLoss().to(device)
