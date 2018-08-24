@@ -17,13 +17,13 @@ from torchvision import transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../data/cifar10/',
-                    help="""image dir path default: '../data/cifar10/'.""")
+parser.add_argument('--path', type=str, default='../../data/cifar10/',
+                    help="""image dir path default: '../../data/cifar10/'.""")
 parser.add_argument('--batch_size', type=int, default=256,
-                    help="""Batch_size default:100.""")
+                    help="""Batch_size default:256.""")
 parser.add_argument('--num_classes', type=int, default=10,
-                    help="""num classes""")
-parser.add_argument('--model_path', type=str, default='../../models/pytorch/',
+                    help="""num classes. Default: 10.""")
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='cifar10.pth',
                     help="""Model name.""")

@@ -19,8 +19,8 @@ from torchvision import transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../data/cifar100/',
-                    help="""image dir path default: '../data/cifar100/'.""")
+parser.add_argument('--path', type=str, default='../../data/cifar100/',
+                    help="""image dir path default: '../../data/cifar100/'.""")
 parser.add_argument('--epochs', type=int, default=50,
                     help="""Epoch default:50.""")
 parser.add_argument('--batch_size', type=int, default=256,
@@ -29,7 +29,7 @@ parser.add_argument('--lr', type=float, default=0.00001,
                     help="""learing_rate. Default=0.00001""")
 parser.add_argument('--num_classes', type=int, default=100,
                     help="""num classes""")
-parser.add_argument('--model_path', type=str, default='../../models/pytorch/',
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='cifar100.pth',
                     help="""Model name.""")
