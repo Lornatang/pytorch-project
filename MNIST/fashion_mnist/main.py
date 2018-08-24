@@ -19,8 +19,8 @@ from torchvision import transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--path', type=str, default='../data/fashion',
-                    help="""image path. Default='../data/fashion'.""")
+parser.add_argument('--path', type=str, default='../../data/MNIST/FashionMNIST/',
+                    help="""image path. Default='../../data/MNIST/FashionMNIST/'.""")
 parser.add_argument('--epochs', type=int, default=100,
                     help="""num epochs. Default=100""")
 parser.add_argument('--num_classes', type=int, default=10,
@@ -29,7 +29,7 @@ parser.add_argument('--batch_size', type=int, default=128,
                     help="""batch size. Default=128""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
-parser.add_argument('--model_path', type=str, default='../../models/pytorch/fashion_mnist/',
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/MNIST/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='fashion_mnist.pth',
                     help="""Model name""")

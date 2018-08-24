@@ -8,8 +8,8 @@
 
 import argparse
 import os
-
 import time
+
 import torch
 import torchvision
 from torch import nn, optim
@@ -19,8 +19,8 @@ from torchvision import transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../../data/cifar100/',
-                    help="""image dir path default: '../../data/cifar100/'.""")
+parser.add_argument('--path', type=str, default='../../data/CIFAR/cifar100/',
+                    help="""image dir path default: '../../data/CIFAR/cifar100/'.""")
 parser.add_argument('--epochs', type=int, default=50,
                     help="""Epoch default:50.""")
 parser.add_argument('--batch_size', type=int, default=256,
