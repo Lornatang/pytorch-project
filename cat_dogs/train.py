@@ -8,8 +8,8 @@
 
 import argparse
 import os
-import time
 
+import time
 import torch
 import torchvision
 from torch import nn, optim
@@ -66,7 +66,7 @@ test_loader = torch.utils.data.DataLoader(dataset=train_datasets,
                                           shuffle=True)
 
 
-def train():
+def main():
     print(f"Train numbers:{len(train_datasets)}")
 
     # Load model
@@ -129,4 +129,4 @@ def train():
 
 
 if __name__ == '__main__':
-    train()
+    main()
