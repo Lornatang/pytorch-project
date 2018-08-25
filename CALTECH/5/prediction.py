@@ -43,7 +43,7 @@ transform = transforms.Compose([
 
 
 # Load data
-test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
+test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'train/',
                                                  transform=transform)
 
 test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
@@ -77,7 +77,7 @@ def main():
         # add correct
         correct += (predicted == labels).sum().item()
 
-    print(f"Acc: {100 * correct / total:.4f}.")
+    print(f"Acc: {correct / total:.4f}.")
 
 
 if __name__ == '__main__':

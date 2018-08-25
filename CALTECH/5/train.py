@@ -58,17 +58,10 @@ train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
                                            batch_size=args.batch_size,
                                            shuffle=True)
 
-test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
-                                                 transform=transform)
-
-test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
-                                          batch_size=args.batch_size,
-                                          shuffle=True)
-
 
 def main():
     print(f"Train numbers:{len(train_datasets)}")
-    print(f"Test numbers:{len(test_datasets)}")
+    print(f"Test numbers:{len(train_datasets)}")
 
     # Load model
     # if torch.cuda.is_available():
@@ -111,7 +104,7 @@ def main():
 
             correct = 0.
             total = 0
-            for images, labels in test_loader:
+            for images, labels in train_loader:
                 # to GPU
                 images = images.to(device)
                 labels = labels.to(device)
@@ -124,7 +117,7 @@ def main():
                 # add correct
                 correct += (predicted == labels).sum().item()
 
-            print(f"Acc: {100 * correct / total:.4f}%.")
+            print(f"Acc: {correct / total:.4f}.")
 
         # Save the model checkpoint
         torch.save(model, args.model_path + args.model_name)
