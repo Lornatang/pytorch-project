@@ -8,8 +8,8 @@
 
 import argparse
 import os
-import time
 
+import time
 import torch
 import torchvision
 from torch import nn, optim
@@ -80,7 +80,6 @@ def main():
     # Optimization
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-8)
 
-    model.train()
     for epoch in range(1, args.epochs + 1):
         model.train()
         # start time

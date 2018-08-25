@@ -8,8 +8,8 @@
 
 import argparse
 import os
-import time
 
+import time
 import torch
 import torchvision
 from torchvision import transforms
@@ -49,16 +49,15 @@ val_loader = torch.utils.data.DataLoader(dataset=val_datasets,
                                          batch_size=args.batch_size,
                                          shuffle=True)
 # train_datasets zip
-item = {'cat': 0, 'dog': 1}
-
-# Load model
-if torch.cuda.is_available():
-    model = torch.load(args.model_path + args.model_name).to(device)
-else:
-    model = torch.load(args.model_path + args.model_name, map_location='cpu')
+item = val_datasets.class_to_idx
 
 
 def val():
+    # Load model
+    if torch.cuda.is_available():
+        model = torch.load(args.model_path + args.model_name).to(device)
+    else:
+        model = torch.load(args.model_path + args.model_name, map_location='cpu')
     model.eval()
     start = time.time()
     for i, (images, _) in enumerate(val_loader):

@@ -60,7 +60,7 @@ def main():
         model = torch.load(args.model_path + args.model_name, map_location='cpu')
     model.eval()
 
-    correct_prediction = 0.
+    correct = 0.
     total = 0
     for images, labels in test_loader:
         # to GPU
@@ -73,9 +73,9 @@ def main():
         # val_loader total
         total += labels.size(0)
         # add correct
-        correct_prediction += (predicted == labels).sum().item()
+        correct += (predicted == labels).sum().item()
 
-    print(f"Acc: {(correct_prediction / total):4f}")
+    print(f"Acc: {100 * correct / total:.4f}")
 
 
 if __name__ == '__main__':
