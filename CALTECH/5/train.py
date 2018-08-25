@@ -19,19 +19,19 @@ from torchvision import transforms, models
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../../data/CALTECH/4/',
-                    help="""image dir path default: '../../data/CALTECH/4/'.""")
+parser.add_argument('--path', type=str, default='../../data/CALTECH/5/',
+                    help="""image dir path default: '../../data/CALTECH/5/'.""")
 parser.add_argument('--epochs', type=int, default=10,
                     help="""Epoch default:10.""")
-parser.add_argument('--batch_size', type=int, default=128,
-                    help="""Batch_size default:128.""")
+parser.add_argument('--batch_size', type=int, default=64,
+                    help="""Batch_size default:64.""")
 parser.add_argument('--lr', type=float, default=1e-4,
                     help="""learning_rate. Default=1e-4""")
-parser.add_argument('--num_classes', type=int, default=4,
-                    help="""num classes. Default: 4.""")
+parser.add_argument('--num_classes', type=int, default=5,
+                    help="""num classes. Default: 5.""")
 parser.add_argument('--model_path', type=str, default='../../../models/pytorch/CALTECH/',
                     help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='4.pth',
+parser.add_argument('--model_name', type=str, default='5.pth',
                     help="""Model name.""")
 parser.add_argument('--display_epoch', type=int, default=1)
 
@@ -124,7 +124,7 @@ def main():
                 # add correct
                 correct += (predicted == labels).sum().item()
 
-            print(f"Acc: {100 * correct / total:.4f}.")
+            print(f"Acc: {100 * correct / total:.4f}%.")
 
         # Save the model checkpoint
         torch.save(model, args.model_path + args.model_name)
