@@ -1,7 +1,7 @@
 """
 # author: shiyipaisizuo
 # contact: shiyipaisizuo@gmail.com
-# file: face.py
+# file: main.py
 # time: 2018/8/20 13:22
 # license: MIT
 """
