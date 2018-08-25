@@ -2,7 +2,7 @@
 # author: shiyipaisizuo
 # contact: shiyipaisizuo@gmail.com
 # file: prediction.py
-# time: 2018/8/14 09:35
+# time: 2018/8/24 22:18
 # license: MIT
 """
 
@@ -17,15 +17,15 @@ from torchvision import transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../../data/ANIMALS/cat_dogs/',
-                    help="""image dir path default: '../../data/ANIMALS/cat_dogs/'.""")
-parser.add_argument('--batch_size', type=int, default=256,
-                    help="""Batch_size default:154.""")
-parser.add_argument('--num_classes', type=int, default=2,
-                    help="""num classes""")
-parser.add_argument('--model_path', type=str, default='../../../models/pytorch/ANIMALS/cat_dogs/',
+parser.add_argument('--path', type=str, default='../../data/CALTECH/154/',
+                    help="""image dir path default: '../../data/CALTECH/154/'.""")
+parser.add_argument('--batch_size', type=int, default=128,
+                    help="""Batch_size default:128.""")
+parser.add_argument('--num_classes', type=int, default=256,
+                    help="""num classes. Default: 154.""")
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/CALTECH/',
                     help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='catdog.pth',
+parser.add_argument('--model_name', type=str, default='154.pth',
                     help="""Model name.""")
 
 args = parser.parse_args()
@@ -35,16 +35,16 @@ if not os.path.exists(args.model_path):
     os.makedirs(args.model_path)
 
 transform = transforms.Compose([
-    transforms.Resize(128),  # 将图像转化为128 * 128
-    transforms.RandomCrop(114),  # 从图像中裁剪一个114 * 114的
+    transforms.Resize(128),  # 将图像转化为800 * 800
+    transforms.RandomCrop(114),  # 从图像中裁剪一个24 * 24的
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),  # 归一化
+    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])  # 归一化
 ])
+
 
 # Load data
 test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
                                                  transform=transform)
-
 
 test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
                                           batch_size=args.batch_size,
@@ -52,12 +52,14 @@ test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
 
 
 def main():
-    print(f"test numbers: {len(test_datasets)}.")
+    print(f"Test numbers:{len(test_datasets)}")
+
     # Load model
     if torch.cuda.is_available():
         model = torch.load(args.model_path + args.model_name).to(device)
     else:
         model = torch.load(args.model_path + args.model_name, map_location='cpu')
+
     model.eval()
 
     correct = 0.
@@ -75,7 +77,7 @@ def main():
         # add correct
         correct += (predicted == labels).sum().item()
 
-    print(f"Acc: {100 * correct / total:.4f}")
+    print(f"Acc: {100 * correct / total:.4f}.")
 
 
 if __name__ == '__main__':

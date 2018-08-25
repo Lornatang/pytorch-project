@@ -17,15 +17,15 @@ from torchvision import transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../../data/CALTECH/256/',
-                    help="""image dir path default: '../../data/CALTECH/256/'.""")
+parser.add_argument('--path', type=str, default='../../data/CALTECH/4/',
+                    help="""image dir path default: '../../data/CALTECH/4/'.""")
 parser.add_argument('--batch_size', type=int, default=128,
                     help="""Batch_size default:128.""")
-parser.add_argument('--num_classes', type=int, default=256,
-                    help="""num classes. Default: 256.""")
-parser.add_argument('--model_path', type=str, default='../../../models/pytorch/caltech/',
+parser.add_argument('--num_classes', type=int, default=4,
+                    help="""num classes. Default: 4.""")
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/CALTECH/',
                     help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='256.pth',
+parser.add_argument('--model_name', type=str, default='4.pth',
                     help="""Model name.""")
 
 args = parser.parse_args()

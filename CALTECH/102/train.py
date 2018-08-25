@@ -29,7 +29,7 @@ parser.add_argument('--lr', type=float, default=1e-4,
                     help="""learning_rate. Default=1e-4""")
 parser.add_argument('--num_classes', type=int, default=102,
                     help="""num classes. Default: 102.""")
-parser.add_argument('--model_path', type=str, default='../../../models/pytorch/caltech/',
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/CALTECH/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='102.pth',
                     help="""Model name.""")

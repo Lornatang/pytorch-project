@@ -24,7 +24,7 @@ parser.add_argument('--path', type=str, default='../../data/CIFAR/cifar10/',
 parser.add_argument('--epochs', type=int, default=50,
                     help="""Epoch default:50.""")
 parser.add_argument('--batch_size', type=int, default=256,
-                    help="""Batch_size default:256.""")
+                    help="""Batch_size default:154.""")
 parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
 parser.add_argument('--num_classes', type=int, default=10,

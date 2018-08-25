@@ -19,8 +19,8 @@ from torchvision import transforms, models
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../../data/CALTECH/256/',
-                    help="""image dir path default: '../../data/CALTECH/256/'.""")
+parser.add_argument('--path', type=str, default='../../data/CALTECH/154/',
+                    help="""image dir path default: '../../data/CALTECH/154/'.""")
 parser.add_argument('--epochs', type=int, default=10,
                     help="""Epoch default:10.""")
 parser.add_argument('--batch_size', type=int, default=128,
@@ -28,10 +28,10 @@ parser.add_argument('--batch_size', type=int, default=128,
 parser.add_argument('--lr', type=float, default=1e-4,
                     help="""learning_rate. Default=1e-4""")
 parser.add_argument('--num_classes', type=int, default=256,
-                    help="""num classes. Default: 256.""")
-parser.add_argument('--model_path', type=str, default='../../../models/pytorch/caltech/',
+                    help="""num classes. Default: 154.""")
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/CALTECH/',
                     help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='256.pth',
+parser.add_argument('--model_name', type=str, default='154.pth',
                     help="""Model name.""")
 parser.add_argument('--display_epoch', type=int, default=1)
 

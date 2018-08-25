@@ -23,7 +23,7 @@ parser.add_argument('--batch_size', type=int, default=128,
                     help="""Batch_size default:128.""")
 parser.add_argument('--num_classes', type=int, default=102,
                     help="""num classes. Default: 102.""")
-parser.add_argument('--model_path', type=str, default='../../../models/pytorch/caltech/',
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/CALTECH/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='102.pth',
                     help="""Model name.""")

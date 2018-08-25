@@ -2,7 +2,7 @@
 # author: shiyipaisizuo
 # contact: shiyipaisizuo@gmail.com
 # file: train.py
-# time: 2018/8/14 09:43
+# time: 2018/8/24 17:52
 # license: MIT
 """
 
@@ -13,25 +13,25 @@ import time
 import torch
 import torchvision
 from torch import nn, optim
-from torchvision import transforms
+from torchvision import transforms, models
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../../data/CIFAR/cifar100/',
-                    help="""image dir path default: '../../data/CIFAR/cifar100/'.""")
-parser.add_argument('--epochs', type=int, default=50,
-                    help="""Epoch default:50.""")
-parser.add_argument('--batch_size', type=int, default=256,
-                    help="""Batch_size default:154.""")
-parser.add_argument('--lr', type=float, default=0.00001,
-                    help="""learing_rate. Default=0.00001""")
-parser.add_argument('--num_classes', type=int, default=100,
-                    help="""num classes""")
-parser.add_argument('--model_path', type=str, default='../../../models/pytorch/CIFAR/',
+parser.add_argument('--path', type=str, default='../../data/CALTECH/4/',
+                    help="""image dir path default: '../../data/CALTECH/4/'.""")
+parser.add_argument('--epochs', type=int, default=10,
+                    help="""Epoch default:10.""")
+parser.add_argument('--batch_size', type=int, default=128,
+                    help="""Batch_size default:128.""")
+parser.add_argument('--lr', type=float, default=1e-4,
+                    help="""learning_rate. Default=1e-4""")
+parser.add_argument('--num_classes', type=int, default=4,
+                    help="""num classes. Default: 4.""")
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/CALTECH/',
                     help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='cifar100.pth',
+parser.add_argument('--model_name', type=str, default='4.pth',
                     help="""Model name.""")
 parser.add_argument('--display_epoch', type=int, default=1)
 
@@ -42,48 +42,47 @@ if not os.path.exists(args.model_path):
     os.makedirs(args.model_path)
 
 transform = transforms.Compose([
-    transforms.Resize(32),  # 将图像转化为32 * 32
-    transforms.RandomHorizontalFlip(0.75),  # 有0.75的几率随机旋转
-    transforms.RandomCrop(24),  # 从图像中裁剪一个24 * 24的
-    # transforms.ColorJitter(brightness=1, contrast=2, saturation=3, hue=0),  # 给图像增加一些随机的光照
+    transforms.Resize(128),  # 将图像转化为800 * 800
+    transforms.RandomHorizontalFlip(0.5),  # 有0.75的几率随机旋转
+    transforms.RandomCrop(114),  # 从图像中裁剪一个24 * 24的
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
     transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])  # 归一化
 ])
 
 
 # Load data
-train_datasets = torchvision.datasets.CIFAR100(root=args.path,
-                                               transform=transform,
-                                               download=True,
-                                               train=True)
+train_datasets = torchvision.datasets.ImageFolder(root=args.path + 'train/',
+                                                  transform=transform)
 
 train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
                                            batch_size=args.batch_size,
                                            shuffle=True)
 
-test_datasets = torchvision.datasets.CIFAR100(root=args.path,
-                                              transform=transform,
-                                              download=True,
-                                              train=False)
+test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
+                                                 transform=transform)
 
 test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
                                           batch_size=args.batch_size,
                                           shuffle=True)
 
 
-def train():
+def main():
     print(f"Train numbers:{len(train_datasets)}")
+    print(f"Test numbers:{len(test_datasets)}")
 
     # Load model
-    if torch.cuda.is_available():
-        model = torch.load(args.model_path + args.model_name).to(device)
-    else:
-        model = torch.load(args.model_path + args.model_name, map_location='cpu')
+    # if torch.cuda.is_available():
+    #     model = torch.load(args.model_path + args.model_name).to(device)
+    # else:
+    #     model = torch.load(args.model_path + args.model_name, map_location='cpu')
+    model = models.resnet18(pretrained=True).to(device)
+    model.avgpool = nn.AvgPool2d(4, 1).to(device)
+    model.fc = nn.Linear(512, args.num_classes).to(device)
     print(model)
     # cast
-    cast = nn.MultiMarginLoss().to(device)
+    cast = nn.CrossEntropyLoss().to(device)
     # Optimization
-    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-5)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-8)
 
     for epoch in range(1, args.epochs + 1):
         model.train()
@@ -110,7 +109,7 @@ def train():
 
             model.eval()
 
-            correct_prediction = 0.
+            correct = 0.
             total = 0
             for images, labels in test_loader:
                 # to GPU
@@ -123,14 +122,14 @@ def train():
                 # val_loader total
                 total += labels.size(0)
                 # add correct
-                correct_prediction += (predicted == labels).sum().item()
+                correct += (predicted == labels).sum().item()
 
-            print(f"Acc: {(correct_prediction / total):4f}")
+            print(f"Acc: {100 * correct / total:.4f}.")
 
-    # Save the model checkpoint
-    torch.save(model, args.model_path + args.model_name)
+        # Save the model checkpoint
+        torch.save(model, args.model_path + args.model_name)
     print(f"Model save to {args.model_path + args.model_name}.")
 
 
 if __name__ == '__main__':
-    train()
+    main()
