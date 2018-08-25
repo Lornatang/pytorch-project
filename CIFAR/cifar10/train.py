@@ -29,7 +29,7 @@ parser.add_argument('--lr', type=float, default=0.0001,
                     help="""learing_rate. Default=0.0001""")
 parser.add_argument('--num_classes', type=int, default=10,
                     help="""num classes""")
-parser.add_argument('--model_path', type=str, default='../../../models/pytorch/',
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/CIFAR/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='cifar10.pth',
                     help="""Model name.""")

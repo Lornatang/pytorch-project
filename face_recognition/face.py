@@ -13,8 +13,8 @@ import cv2
 import face_recognition
 
 parser = argparse.ArgumentParser("""Face recognition!""")
-parser.add_argument('--path', '-p', type=str, default='../data/face/A/',
-                    help="""Known face path dir. Default: '../data/face/A/'""")
+parser.add_argument('--path', '-p', type=str, default='../data/FACE/A/',
+                    help="""Known face path dir. Default: '../data/FACE/A/'""")
 args = parser.parse_args()
 
 # Get a reference to webcam #0 (the default one)
