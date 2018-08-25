@@ -19,8 +19,8 @@ from torchvision import transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../data/catdog/',
-                    help="""image dir path default: '../data/catdog/'.""")
+parser.add_argument('--path', type=str, default='../../data/ANIMALS/catdog/',
+                    help="""image dir path default: '../../data/ANIMALS/catdog/'.""")
 parser.add_argument('--epochs', type=int, default=10,
                     help="""Epoch default:10.""")
 parser.add_argument('--batch_size', type=int, default=128,
@@ -29,7 +29,7 @@ parser.add_argument('--lr', type=float, default=1e-4,
                     help="""learning_rate. Default=1e-4""")
 parser.add_argument('--num_classes', type=int, default=2,
                     help="""num classes. Default: 2.""")
-parser.add_argument('--model_path', type=str, default='../../models/pytorch/cat_dogs/',
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/ANIMALS/cat_dogs/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='catdog.pth',
                     help="""Model name.""")

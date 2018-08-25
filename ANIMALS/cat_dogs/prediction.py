@@ -17,13 +17,13 @@ from torchvision import transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../data/cat_dogs/',
-                    help="""image dir path default: '../data/cat_dogs/'.""")
+parser.add_argument('--path', type=str, default='../../data/ANIMALS/cat_dogs/',
+                    help="""image dir path default: '../../data/ANIMALS/cat_dogs/'.""")
 parser.add_argument('--batch_size', type=int, default=256,
                     help="""Batch_size default:256.""")
 parser.add_argument('--num_classes', type=int, default=2,
                     help="""num classes""")
-parser.add_argument('--model_path', type=str, default='../../models/pytorch/cat_dogs/',
+parser.add_argument('--model_path', type=str, default='../../../models/pytorch/ANIMALS/cat_dogs/',
                     help="""Save model path""")
 parser.add_argument('--model_name', type=str, default='catdog.pth',
                     help="""Model name.""")
