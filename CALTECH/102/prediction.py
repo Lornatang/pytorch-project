@@ -43,7 +43,7 @@ transform = transforms.Compose([
 
 
 # Load data
-test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
+test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'train/',
                                                  transform=transform)
 
 test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
