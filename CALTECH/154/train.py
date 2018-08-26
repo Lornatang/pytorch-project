@@ -27,7 +27,7 @@ parser.add_argument('--batch_size', type=int, default=128,
                     help="""Batch_size default:128.""")
 parser.add_argument('--lr', type=float, default=1e-4,
                     help="""learning_rate. Default=1e-4""")
-parser.add_argument('--num_classes', type=int, default=256,
+parser.add_argument('--num_classes', type=int, default=154,
                     help="""num classes. Default: 154.""")
 parser.add_argument('--model_path', type=str, default='../../../models/pytorch/CALTECH/',
                     help="""Save model path""")
