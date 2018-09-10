@@ -18,9 +18,9 @@ from torchvision import transforms, models
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../../data/PASCAL_VOC/2005/',
-                    help="""image dir path default: '../../data/PASCAL_VOC/2005/'.""")
+parser = argparse.ArgumentParser("""Image classify!""")
+parser.add_argument('--path', type=str, default='../../data/PASCAL/2005/',
+                    help="""image dir path default: '../../data/PASCAL/2005/'.""")
 parser.add_argument('--epochs', type=int, default=10,
                     help="""Epoch default:10.""")
 parser.add_argument('--batch_size', type=int, default=128,
