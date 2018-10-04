@@ -13,6 +13,7 @@ import time
 import torch
 import torchvision
 from torch import nn, optim
+from torch.utils import data
 from torchvision import transforms, models
 
 # Device configuration
@@ -54,16 +55,16 @@ transform = transforms.Compose([
 train_datasets = torchvision.datasets.ImageFolder(root=args.path + 'train/',
                                                   transform=transform)
 
-train_loader = torch.utils.data.DataLoader(dataset=train_datasets,
-                                           batch_size=args.batch_size,
-                                           shuffle=True)
+train_loader = data.DataLoader(dataset=train_datasets,
+                               batch_size=args.batch_size,
+                               shuffle=True)
 
 test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'val/',
                                                  transform=transform)
 
-test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
-                                          batch_size=args.batch_size,
-                                          shuffle=True)
+test_loader = data.DataLoader(dataset=test_datasets,
+                              batch_size=args.batch_size,
+                              shuffle=True)
 
 
 def main():
