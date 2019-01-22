@@ -69,17 +69,17 @@ class Net(nn.Module):
 
         self.classifier = nn.Sequential(
             nn.Dropout(),
-            nn.Linear(13 * 13 * 128, 1024),
+            nn.Linear(12 * 12 * 128, 512),
             nn.ReLU(inplace=True),
             nn.Dropout(),
-            nn.Linear(1024, 512),
+            nn.Linear(512, 128),
             nn.ReLU(inplace=True),
-            nn.Linear(512, num_classes)
+            nn.Linear(128, num_classes)
         )
 
     def forward(self, x):
         x = self.features(x)
-        x = x.view(x.size(0), 13 * 13 * 128)
+        x = x.view(x.size(0), 12 * 12 * 128)
         out = self.classifier(x)
 
         return out
