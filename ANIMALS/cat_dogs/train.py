@@ -108,7 +108,16 @@ class AlexNet(nn.Module):
 
 def main():
     print(f"Train numbers:{len(train_datasets)}")
-    model = AlexNet()
+    model = torchvision.models.alexnet(pretrained=True)
+    model.classifier = nn.Sequential(
+            nn.Dropout(),
+            nn.Linear(256 * 6 * 6, 4096),
+            nn.ReLU(inplace=True),
+            nn.Dropout(),
+            nn.Linear(4096, 4096),
+            nn.ReLU(inplace=True),
+            nn.Linear(4096, NUM_CLASSES),
+        )
     # cost
     cost = nn.CrossEntropyLoss().to(device)
     # Optimization
@@ -118,7 +127,7 @@ def main():
         # model.train()
         # start time
         start = time.time()
-        for images, labels in train_loader:
+        for images, labels in test_loader:
             images = images.to(device)
             labels = labels.to(device)
 
@@ -131,7 +140,7 @@ def main():
             loss.backward()
             optimizer.step()
 
-        if epoch % 2 == 0:
+        if epoch % 1 == 0:
             end = time.time()
             print(f"Epoch [{epoch}/{NUM_EPOCHS}], "
                   f"Loss: {loss.item():.8f}, "
