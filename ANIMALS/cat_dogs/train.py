@@ -60,64 +60,42 @@ class AlexNet(nn.Module):
 
     def __init__(self, num_classes=NUM_CLASSES):
         super(AlexNet, self).__init__()
-        self.layer1 = torch.nn.Sequential(
+        self.features = torch.nn.Sequential(
             torch.nn.Conv2d(3, 64, kernel_size=11, stride=4, padding=2),
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(3, 2)
-        )
-        self.layer2 = torch.nn.Sequential(
+            torch.nn.ReLU(inplace=True),
+            torch.nn.MaxPool2d(kernel_size=3, stride=2),
             torch.nn.Conv2d(64, 192, kernel_size=5, padding=2),
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(3, 2)
-        )
-        self.layer3 = torch.nn.Sequential(
+            torch.nn.ReLU(inplace=True),
+            torch.nn.MaxPool2d(kernel_size=3, stride=2),
             torch.nn.Conv2d(192, 384, kernel_size=3, padding=1),
-            torch.nn.ReLU(),
-        )
-        self.layer4 = torch.nn.Sequential(
+            torch.nn.ReLU(inplace=True),
             torch.nn.Conv2d(384, 256, kernel_size=3, padding=1),
-            torch.nn.ReLU(),
-        )
-        self.layer5 = torch.nn.Sequential(
-            torch.nn.Conv2d(256, 256, 3, 1),
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(3, 2)
-        )
-        self.dense = torch.nn.Sequential(
+            torch.nn.ReLU(inplace=True),
+            torch.nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            torch.nn.ReLU(inplace=True),
+            torch.nn.MaxPool2d(kernel_size=3, stride=2))
+        self.classifier = torch.nn.Sequential(
             torch.nn.Dropout(0.5),
-            torch.nn.Linear(9216, 4096),
-            torch.nn.ReLU(),
+            torch.nn.Linear(9216, 1024),
+            torch.nn.ReLU(inplace=True),
 
             torch.nn.Dropout(0.5),
-            torch.nn.Linear(4096, 4096),
-            torch.nn.ReLU(),
+            torch.nn.Linear(1024, 128),
+            torch.nn.ReLU(inplace=True),
 
-            torch.nn.Linear(4096, num_classes)
+            torch.nn.Linear(128, num_classes)
         )
 
     def forward(self, x):
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
-        x = self.layer5(x)
-        x = x.view(x.size(0), -1)
-        out = self.dense(x)
+        x = self.features(x)
+        x = x.view(x.size(0), 256 * 6 * 6)
+        out = self.classifier(x)
         return out
 
 
 def main():
     print(f"Train numbers:{len(train_datasets)}")
-    model = torchvision.models.alexnet(pretrained=True)
-    model.classifier = nn.Sequential(
-            nn.Dropout(),
-            nn.Linear(256 * 6 * 6, 4096),
-            nn.ReLU(inplace=True),
-            nn.Dropout(),
-            nn.Linear(4096, 4096),
-            nn.ReLU(inplace=True),
-            nn.Linear(4096, NUM_CLASSES),
-        )
+    model = AlexNet()
     # cost
     cost = nn.CrossEntropyLoss().to(device)
     # Optimization
@@ -158,7 +136,7 @@ def main():
                 outputs = model(images)
                 # equal prediction and acc
 
-                _, predicted = torch.argmax(outputs.data, 1)
+                _, predicted = torch.max(outputs.data, 1)
                 # val_loader total
                 total += labels.size(0)
                 # add correct
