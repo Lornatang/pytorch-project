@@ -4,7 +4,7 @@ from torchvision import transforms
 
 BATCH_SIZE = 1
 
-MODEL_PATH = '../../../models/pytorch/CALTECH/'
+MODEL_DIR = '../../../models/pytorch/CALTECH/'
 MODEL_NAME = '102.pth'
 
 
@@ -33,9 +33,9 @@ def main():
 
     # Load model
     if torch.cuda.is_available():
-        model = torch.load(MODEL_PATH + MODEL_NAME).to(device)
+        model = torch.load(MODEL_DIR + MODEL_NAME).to(device)
     else:
-        model = torch.load(MODEL_PATH + MODEL_NAME, map_location='cpu')
+        model = torch.load(MODEL_DIR + MODEL_NAME, map_location='cpu')
 
     model.eval()
 
