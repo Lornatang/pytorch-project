@@ -1,6 +1,6 @@
 from torch import nn
 
-NUM_CLASSES = 4
+NUM_CLASSES = 102
 
 
 class Net(nn.Module):
