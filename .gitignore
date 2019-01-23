@@ -12,3 +12,4 @@ cat_dogs/G.ckpt
 cat_dogs/Generator.pth
 .vscode
 resize.py
+resize.py
