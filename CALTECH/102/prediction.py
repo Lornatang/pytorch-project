@@ -17,17 +17,15 @@ from torchvision import transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 WORK_DIR = '../../data/CALTECH/102/'
-NUM_EPOCHS = 10
 BATCH_SIZE = 64
-LEARNING_RATE = 1e-4
 NUM_CLASSES = 102
 
-MODEL_PATH = '../../../models/pytorch/CALTECH/'
+MODEL_DIR = '../../../models/pytorch/CALTECH/'
 MODEL_NAME = '102.pth'
 
 # Create model
-if not os.path.exists(MODEL_PATH):
-    os.makedirs(MODEL_PATH)
+if not os.path.exists(MODEL_DIR):
+    os.makedirs(MODEL_DIR)
 
 transform = transforms.Compose([
     transforms.Resize(224),  # 将图像转化为800 * 800
@@ -50,9 +48,9 @@ def main():
 
     # Load model
     if torch.cuda.is_available():
-        model = torch.load(MODEL_PATH + MODEL_NAME).to(device)
+        model = torch.load(MODEL_DIR + MODEL_NAME).to(device)
     else:
-        model = torch.load(MODEL_PATH + MODEL_NAME, map_location='cpu')
+        model = torch.load(MODEL_DIR + MODEL_NAME, map_location='cpu')
 
     model.eval()
 
