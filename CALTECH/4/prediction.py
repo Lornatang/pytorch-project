@@ -13,7 +13,7 @@ import torchvision
 from torch.utils import data
 from torchvision import transforms
 
-from .net import Net
+from net import Net
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -50,7 +50,7 @@ model = Net()
 
 
 def main():
-    print(f"Test numbers:{len(val_datasets)}")
+    print(f"Val numbers:{len(val_datasets)}")
 
     # Load model
     if torch.cuda.is_available():

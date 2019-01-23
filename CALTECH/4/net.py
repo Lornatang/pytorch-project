@@ -4,6 +4,9 @@ NUM_CLASSES = 4
 
 
 class Net(nn.Module):
+    """use myself network.
+    input img size is 224 * 224"""
+
     def __init__(self, num_classes=NUM_CLASSES):
         super(Net, self).__init__()
         self.features = nn.Sequential(

@@ -15,7 +15,7 @@ from torch import nn, optim
 from torch.utils import data
 from torchvision import transforms
 
-from .net import Net
+from net import Net
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
