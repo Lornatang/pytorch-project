@@ -13,8 +13,6 @@ import torchvision
 from torch.utils import data
 from torchvision import transforms
 
-from net import Net
-
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -46,8 +44,6 @@ val_loader = torch.utils.data.DataLoader(dataset=val_datasets,
                                          batch_size=BATCH_SIZE,
                                          shuffle=True)
 
-model = Net()
-
 
 def main():
     print(f"Val numbers:{len(val_datasets)}")
@@ -67,7 +63,7 @@ def main():
         images = images.to(device)
         labels = labels.to(device)
         # print prediction
-        outputs = model(images)
+        outputs = a(images)
         # equal prediction and acc
         _, predicted = torch.max(outputs.data, 1)
         # val_loader total
