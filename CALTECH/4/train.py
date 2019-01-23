@@ -102,6 +102,7 @@ def main():
         # model.train()
         # start time
         start = time.time()
+        step = 1
         for images, labels in train_loader:
             images = images.to(device)
             labels = labels.to(device)
@@ -115,30 +116,10 @@ def main():
             loss.backward()
             optimizer.step()
 
-        if epoch % 1 == 0:
             end = time.time()
-            print(f"Epoch [{epoch}/{NUM_EPOCHS}], "
+            print(f"Step [{step * 64}/{10 * len(train_datasets) / 64}], "
                   f"Loss: {loss.item():.8f}, "
                   f"Time: {(end-start) * 1:.1f}sec!")
-
-            model.eval()
-
-            correct = 0.
-            total = 0
-            for images, labels in train_loader:
-                # to GPU
-                images = images.to(device)
-                labels = labels.to(device)
-                # print prediction
-                outputs = model(images)
-                # equal prediction and acc
-                _, predicted = torch.max(outputs.data, 1)
-                # val_loader total
-                total += labels.size(0)
-                # add correct
-                correct += (predicted == labels).sum().item()
-
-            print(f"Acc: {correct / total:.4f}.")
 
         # Save the model checkpoint
         torch.save(model, MODEL_PATH + MODEL_NAME)
