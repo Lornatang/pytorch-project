@@ -6,65 +6,63 @@
 # license: MIT
 """
 
-import argparse
 import os
 
 import torch
 import torchvision
+from torch.utils import data
 from torchvision import transforms
+
+from .net import Net
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-parser = argparse.ArgumentParser("""Image classifical!""")
-parser.add_argument('--path', type=str, default='../../data/CALTECH/4/',
-                    help="""image dir path default: '../../data/CALTECH/4/'.""")
-parser.add_argument('--batch_size', type=int, default=128,
-                    help="""Batch_size default:128.""")
-parser.add_argument('--num_classes', type=int, default=4,
-                    help="""num classes. Default: 4.""")
-parser.add_argument('--model_path', type=str, default='../../../models/pytorch/CALTECH/',
-                    help="""Save model path""")
-parser.add_argument('--model_name', type=str, default='4.pth',
-                    help="""Model name.""")
+WORK_DIR = '../../data/CALTECH/4/'
+NUM_EPOCHS = 10
+BATCH_SIZE = 64
+LEARNING_RATE = 1e-4
+NUM_CLASSES = 4
 
-args = parser.parse_args()
+MODEL_PATH = '../../../models/pytorch/CALTECH/'
+MODEL_NAME = '4.pth'
 
 # Create model
-if not os.path.exists(args.model_path):
-    os.makedirs(args.model_path)
+if not os.path.exists(MODEL_PATH):
+    os.makedirs(MODEL_PATH)
 
 transform = transforms.Compose([
-    transforms.Resize(128),  # 将图像转化为800 * 800
-    transforms.RandomCrop(114),  # 从图像中裁剪一个24 * 24的
+    transforms.Resize(224),  # 将图像转化为800 * 800
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
     transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])  # 归一化
 ])
 
 
 # Load data
-test_datasets = torchvision.datasets.ImageFolder(root=args.path + 'train/',
-                                                 transform=transform)
+val_datasets = torchvision.datasets.ImageFolder(root=WORK_DIR + 'val/',
+                                                transform=transform)
 
-test_loader = torch.utils.data.DataLoader(dataset=test_datasets,
-                                          batch_size=args.batch_size,
-                                          shuffle=True)
+val_loader = torch.utils.data.DataLoader(dataset=val_datasets,
+                                         batch_size=BATCH_SIZE,
+                                         shuffle=True)
+
+model = Net()
 
 
 def main():
-    print(f"Test numbers:{len(test_datasets)}")
+    print(f"Test numbers:{len(val_datasets)}")
 
     # Load model
     if torch.cuda.is_available():
-        model = torch.load(args.model_path + args.model_name).to(device)
+        model = torch.load(MODEL_PATH + MODEL_NAME).to(device)
     else:
-        model = torch.load(args.model_path + args.model_name, map_location='cpu')
+        model = torch.load(MODEL_PATH + MODEL_NAME, map_location='cpu')
 
     model.eval()
 
     correct = 0.
     total = 0
-    for images, labels in test_loader:
+    for images, labels in val_loader:
         # to GPU
         images = images.to(device)
         labels = labels.to(device)
