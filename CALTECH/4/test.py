@@ -1,8 +1,6 @@
 import torch
 import torchvision
 from torchvision import transforms
-from net import Net
-
 
 BATCH_SIZE = 1
 
@@ -15,7 +13,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 transform = transforms.Compose([
-    transforms.Resize(224),  # 将图像转化为800 * 800
+    transforms.Resize(224),  # 将图像转化为224 * 224
     transforms.ToTensor(),  # 将numpy数据类型转化为Tensor
     transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])  # 归一化
 ])
