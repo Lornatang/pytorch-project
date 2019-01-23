@@ -2,7 +2,7 @@
 # author: shiyipaisizuo
 # contact: shiyipaisizuo@gmail.com
 # file: prediction.py
-# time: 2018/8/24 22:18
+# time: 2019/1/23 10:18
 # license: MIT
 """
 
@@ -16,14 +16,14 @@ from torchvision import transforms
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-WORK_DIR = '../../data/CALTECH/4/'
+WORK_DIR = '../../data/CALTECH/102/'
 NUM_EPOCHS = 10
 BATCH_SIZE = 64
 LEARNING_RATE = 1e-4
-NUM_CLASSES = 4
+NUM_CLASSES = 102
 
 MODEL_PATH = '../../../models/pytorch/CALTECH/'
-MODEL_NAME = '4.pth'
+MODEL_NAME = '102.pth'
 
 # Create model
 if not os.path.exists(MODEL_PATH):

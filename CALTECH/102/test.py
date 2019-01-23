@@ -5,7 +5,7 @@ from torchvision import transforms
 BATCH_SIZE = 1
 
 MODEL_PATH = '../../../models/pytorch/CALTECH/'
-MODEL_NAME = '4.pth'
+MODEL_NAME = '102.pth'
 
 
 # Device configuration

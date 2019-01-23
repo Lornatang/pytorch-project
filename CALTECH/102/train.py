@@ -2,7 +2,7 @@
 # author: shiyipaisizuo
 # contact: shiyipaisizuo@gmail.com
 # file: train.py
-# time: 2018/8/24 17:52
+# time: 2019/1/23
 # license: MIT
 """
 
@@ -19,14 +19,14 @@ from torchvision import transforms
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-WORK_DIR = '../../data/CALTECH/4/'
+WORK_DIR = '../../data/CALTECH/102/'
 NUM_EPOCHS = 10
 BATCH_SIZE = 64
 LEARNING_RATE = 1e-4
-NUM_CLASSES = 4
+NUM_CLASSES = 102
 
 MODEL_PATH = '../../../models/pytorch/CALTECH/'
-MODEL_NAME = '4.pth'
+MODEL_NAME = '102.pth'
 
 # Create model
 if not os.path.exists(MODEL_PATH):
@@ -68,12 +68,11 @@ def main():
         model.parameters(),
         lr=LEARNING_RATE,
         weight_decay=1e-8)
-
+    step = 1
     for epoch in range(1, NUM_EPOCHS + 1):
         # model.train()
         # start time
         start = time.time()
-        step = 1
         for images, labels in train_loader:
             images = images.to(device)
             labels = labels.to(device)
@@ -88,9 +87,10 @@ def main():
             optimizer.step()
 
             end = time.time()
-            print(f"Step [{step * 64}/{10 * len(train_datasets) / 64}], "
+            print(f"Step [{step * 64}/{int(10 * len(train_datasets))}], "
                   f"Loss: {loss.item():.8f}, "
                   f"Time: {(end-start) * 1:.1f}sec!")
+            step += 1
 
         # Save the model checkpoint
         torch.save(model, MODEL_PATH + MODEL_NAME)
