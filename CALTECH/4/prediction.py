@@ -13,6 +13,8 @@ import torchvision
 from torch.utils import data
 from torchvision import transforms
 
+from net import Net
+
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -63,7 +65,7 @@ def main():
         images = images.to(device)
         labels = labels.to(device)
         # print prediction
-        outputs = a(images)
+        outputs = model(images)
         # equal prediction and acc
         _, predicted = torch.max(outputs.data, 1)
         # val_loader total
